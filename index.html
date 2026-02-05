@@ -1242,18 +1242,8 @@
                 `;
             }).join('');
             
-            // Charger le contenu d'explication
-            try {
-                const response = await fetch(q.infoFile);
-                if (response.ok) {
-                    const html = await response.text();
-                    $('info-content').innerHTML = html;
-                } else {
-                    $('info-content').innerHTML = '<p>Information non disponible.</p>';
-                }
-            } catch (error) {
-                $('info-content').innerHTML = '<p>Information non disponible.</p>';
-            }
+            // Afficher le contenu d'explication directement depuis config.js
+            $('info-content').innerHTML = q.info || '<p>Information non disponible.</p>';
         }
 
         // === DÉMARRAGE ===
