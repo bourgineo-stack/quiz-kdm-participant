@@ -727,28 +727,14 @@
         
         <div class="container">
             <div class="card">
-                <h2 class="card-title">Jouer en Solo</h2>
+                <h2 class="card-title">Bienvenue !</h2>
                 <div class="pseudo-display">
-                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">Votre pseudo :</p>
+                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.8rem;">Votre pseudo :</p>
                     <div class="generated-pseudo" id="generated-pseudo">Vélo427</div>
-                    <button class="btn-refresh" id="btn-refresh">🔄 Autre</button>
+                    <button class="btn-refresh" id="btn-refresh">🔄 Autre pseudo</button>
                 </div>
                 <button class="btn btn-primary" id="btn-join-solo">
                     🎲 Tirer mon équipe
-                </button>
-            </div>
-
-            <div class="card" id="duo-option">
-                <h2 class="card-title">Mode 2 joueurs</h2>
-                <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
-                    Un collègue joue avec vous ? (Même équipe)
-                </p>
-                <div class="pseudo-display" style="margin-bottom: 1rem;">
-                    <div class="generated-pseudo small" id="generated-pseudo2">Tram892</div>
-                    <button class="btn-refresh" id="btn-refresh2">🔄</button>
-                </div>
-                <button class="btn btn-primary" id="btn-add-player2" style="background: var(--team-blue);">
-                    👥 Lancer le Quiz à deux
                 </button>
             </div>
         </div>
@@ -790,6 +776,7 @@
                 <span id="game-pseudo">Pseudo</span>
             </div>
             <button class="btn-leave" id="btn-leave"> Quitter</button>
+            <button id="btn-invite-midgame" style="background:none; border:1px solid white; color:white; border-radius:5px; padding:2px 8px; font-size:0.7rem; cursor:pointer; margin-left:10px;">+ Inviter un collègue</button>
             <div class="timer" id="game-timer">2:00</div>
             <button class="btn-refresh" id="btn-invite-midgame" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; margin-left: 5px; color: white; border-color: white;">➕ Inviter un collègue</button>
         </header>
@@ -969,55 +956,42 @@
         }
 
         function setupEventListeners() {
-            // Refresh Pseudos
+            // Refresh Pseudo
             $('btn-refresh').onclick = () => { $('generated-pseudo').textContent = generatePseudo(); };
-            $('btn-refresh2').onclick = () => { $('generated-pseudo2').textContent = generatePseudo(); };
 
-            // Bouton Solo
+            // Inscription Solo
             $('btn-join-solo').onclick = () => {
                 state.mode = 'solo';
                 state.players = [{ pseudo: $('generated-pseudo').textContent, team: null }];
                 showLotteryScreen();
             };
 
-            // Bouton Duo (Même équipe forcée)
-            $('btn-add-player2').onclick = () => {
+            // INVITATION EN COURS DE PARTIE
+            $('btn-invite-midgame').onclick = () => {
+                if (state.mode === 'duo') return; // Déjà en duo
+                
+                const pseudo2 = generatePseudo();
+                state.players.push({ 
+                    pseudo: pseudo2, 
+                    team: state.players[0].team // Même équipe forcée
+                });
                 state.mode = 'duo';
-                state.players = [
-                    { pseudo: $('generated-pseudo').textContent, team: null },
-                    { pseudo: $('generated-pseudo2').textContent, team: null }
-                ];
-                showLotteryScreen();
+                
+                // On cache l'écran solo, on affiche le duo
+                $('game-screen').classList.remove('active');
+                $('game-duo-screen').classList.add('active');
+                
+                // Initialisation des noms
+                $('p1-name').textContent = state.players[0].pseudo;
+                $('p2-name').textContent = state.players[1].pseudo;
+                
+                // Rafraîchir l'affichage des questions pour le nouveau joueur
+                onQuestionChange(getQuizState(state.referenceTime));
             };
 
             $('btn-start').onclick = () => { registerPlayers(); showGameScreen(); };
             $('btn-leave').onclick = leaveGame;
             $('btn-rejoin').onclick = rejoinGame;
-// Trouvez la fin de setupEventListeners et ajoutez ceci avant la fermeture } :
-
-$('btn-invite-midgame').onclick = () => {
-    const pseudo2 = generatePseudo();
-    // On ajoute le joueur 2 dans la même équipe que le joueur 1
-    state.players.push({ 
-        pseudo: pseudo2, 
-        team: state.players[0].team 
-    });
-    state.mode = 'duo';
-    
-    // On bascule l'affichage immédiatement
-    $('game-screen').classList.remove('active');
-    $('game-duo-screen').classList.add('active');
-    
-    // On initialise l'interface duo
-    $('p1-name').textContent = state.players[0].pseudo;
-    $('p2-name').textContent = state.players[1].pseudo;
-    $('player1-zone').className = `player-zone ${state.players[0].team}`;
-    $('player2-zone').className = `player-zone ${state.players[1].team}`;
-    
-    // On force la mise à jour des questions pour le nouveau joueur
-    onQuestionChange(getQuizState(state.referenceTime));
-};
-            
         }
 
         // === ÉCRAN TIRAGE AU SORT ===
@@ -1219,32 +1193,33 @@ $('btn-invite-midgame').onclick = () => {
         console.error('Erreur envoi réponse:', error);
     }
 }
-        // Remplacez votre fonction leaveGame actuelle par celle-ci :
+        
 
 async function leaveGame() {
-    if (!confirm("Voulez-vous vraiment quitter ?")) return;
-
-    // Si on est en mode duo, on demande si c'est tout le monde ou juste un joueur
-    if (state.mode === 'duo') {
-        const quitterTout = confirm("Tout le monde quitte ? (Annuler pour que seul le joueur 2 quitte)");
-        
-        if (quitterTout) {
-            // Tout le monde quitte
-            goToLeaveScreen();
-        } else {
-            // Seul le joueur 2 s'en va, le joueur 1 continue en solo
-            state.players.pop(); // Retire le dernier joueur ajouté
-            state.mode = 'solo';
-            $('game-duo-screen').classList.remove('active');
-            $('game-screen').classList.add('active');
-            // Réinitialise le pseudo affiché en solo
-            $('game-pseudo').textContent = state.players[0].pseudo;
+            if (state.mode === 'duo') {
+                const choix = confirm("Cliquez sur OK pour quitter TOUT LE MONDE.\nCliquez sur ANNULER pour que seul le 2ème joueur s'en aille.");
+                if (choix) {
+                    goToLeaveScreen();
+                } else {
+                    // Seul le joueur 2 part
+                    state.players.pop();
+                    state.mode = 'solo';
+                    $('game-duo-screen').classList.remove('active');
+                    $('game-screen').classList.add('active');
+                    return;
+                }
+            } else {
+                if (confirm("Voulez-vous vraiment quitter ?")) {
+                    goToLeaveScreen();
+                }
+            }
         }
-    } else {
-        // En mode solo, on quitte normalement
-        goToLeaveScreen();
-    }
-}
+
+        function goToLeaveScreen() {
+            $('game-screen').classList.remove('active');
+            $('game-duo-screen').classList.remove('active');
+            $('leave-screen').classList.add('active');
+        }
 
 function goToLeaveScreen() {
     $('game-screen').classList.remove('active');
