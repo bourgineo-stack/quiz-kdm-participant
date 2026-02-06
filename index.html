@@ -650,6 +650,66 @@
             text-align: center;
             font-weight: 600;
         }
+        /* Bouton quitter */
+.btn-leave {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: rgba(0,0,0,0.3);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    z-index: 100;
+}
+.btn-leave:hover {
+    background: var(--team-red);
+    border-color: var(--team-red);
+}
+
+/* Écran de fin */
+.leave-screen {
+    display: none;
+    min-height: 100vh;
+    background: var(--divia-purple);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    color: white;
+}
+.leave-screen.active {
+    display: flex;
+}
+.leave-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+.leave-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+.leave-message {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-bottom: 2rem;
+}
+.btn-rejoin {
+    background: var(--divia-magenta);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
     </style>
 </head>
 <body>
@@ -741,6 +801,7 @@
         </header>
 
         <div class="phase-bar vote" id="phase-bar">
+            <button class="btn-leave" id="btn-leave">🚪 Quitter</button>
             ⏱️ Phase de vote
         </div>
 
@@ -827,7 +888,13 @@
             </div>
         </div>
     </div>
-
+<!-- Écran quitter -->
+<div class="screen" id="leave-screen">
+    <div class="leave-icon">👋</div>
+    <h2 class="leave-title">Merci d'avoir joué !</h2>
+    <p class="leave-message">Vous avez quitté la partie.<br>À bientôt sur les lignes Divia !</p>
+    <button class="btn-rejoin" id="btn-rejoin">🔄 Rejouer</button>
+</div>
     <script src="config.js"></script>
     <script>
         // === ÉTAT DE L'APPLICATION ===
@@ -960,6 +1027,11 @@
                 state.mode = 'duo';
                 showGameScreen();
             });
+            // Bouton quitter
+$('btn-leave').addEventListener('click', leaveGame);
+
+// Bouton rejouer
+$('btn-rejoin').addEventListener('click', rejoinGame);
         }
 
         // === ÉCRAN TIRAGE AU SORT ===
@@ -1125,40 +1197,77 @@
         }
 
         async function submitAnswer(playerIndex, answerIndex, quizState) {
-            state.submitted[playerIndex] = true;
-            
-            const player = state.players[playerIndex];
-            const data = {
-                action: 'answer',
-                pseudo: player.pseudo,
-                team: player.team,
-                questionId: quizState.questionIndex + 1,
-                answer: answerIndex,
-                timestamp: Date.now()
-            };
-            
-            console.log('Réponse soumise:', data);
-            
-            // Feedback visuel
-            if (state.mode === 'duo') {
-                $(`p${playerIndex + 1}-status`).textContent = '✓ Voté';
-            } else {
-                $('status-message').textContent = '✓ Réponse enregistrée';
-                $('status-message').className = 'status-message success';
-            }
-            
-            // Envoyer au Google Sheet
-            try {
-                await fetch(CONFIG.sheetUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            } catch (error) {
-                console.error('Erreur envoi réponse:', error);
-            }
-        }
+    state.submitted[playerIndex] = true;
+    
+    const player = state.players[playerIndex];
+    const tour = getCurrentTour(state.referenceTime);
+    
+    const data = {
+        action: 'answer',
+        pseudo: player.pseudo,
+        team: player.team,
+        questionId: quizState.currentQuestion.id,
+        answer: answerIndex,
+        tour: tour
+    };
+    
+    console.log('Réponse soumise:', data);
+    
+    // Feedback visuel
+    if (state.mode === 'duo') {
+        $(`p${playerIndex + 1}-status`).textContent = '✓ Voté';
+    } else {
+        $('status-message').textContent = '✓ Réponse enregistrée';
+        $('status-message').className = 'status-message success';
+    }
+    
+    // Envoyer au Google Sheet
+    try {
+        await fetch(CONFIG.sheetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    } catch (error) {
+        console.error('Erreur envoi réponse:', error);
+    }
+}
+        async function leaveGame() {
+    const pseudo = state.players[0]?.pseudo;
+    if (!pseudo) return;
+    
+    try {
+        await fetch(CONFIG.sheetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'leaveGame', pseudo })
+        });
+    } catch (error) {
+        console.error('Erreur leave:', error);
+    }
+    
+    // Afficher l'écran de fin
+    $('game-screen').classList.remove('active');
+    $('game-duo-screen').classList.remove('active');
+    $('leave-screen').classList.add('active');
+}
+
+function rejoinGame() {
+    // Réinitialiser l'état
+    state.players = [];
+    state.currentAnswer = {};
+    state.submitted = {};
+    state.lastQuestionIndex = -1;
+    
+    // Retourner à l'inscription
+    $('leave-screen').classList.remove('active');
+    $('register-screen').classList.add('active');
+    
+    // Générer un nouveau pseudo
+    $('generated-pseudo').textContent = generatePseudo();
+}
 
         function updateTimer(quizState) {
             const timeStr = formatTime(quizState.timeRemaining);
