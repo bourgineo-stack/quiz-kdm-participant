@@ -562,6 +562,9 @@
 
         .player-zone.blue .player-header { border-color: var(--team-blue); }
         .player-zone.red .player-header { border-color: var(--team-red); }
+        /* Couleur du numéro du joueur (l'avatar) */
+        .player-avatar.blue { background: var(--team-blue); }
+        .player-avatar.red { background: var(--team-red); }
 
         .player-avatar {
             width: 36px;
@@ -832,8 +835,9 @@
     <div class="screen" id="game-duo-screen">
         <header class="game-header">
             <div class="team-indicator">
-                <span>🎮 Mode duo</span>
+                <span id="duo-team-title">🎮 Mode duo</span>
             </div>
+            <button class="btn-leave" id="btn-leave-duo">🚪 Quitter</button>
             <div class="timer" id="game-timer-duo">2:00</div>
         </header>
 
@@ -842,30 +846,24 @@
         </div>
 
         <div class="duo-container active" id="duo-game-container">
-            <!-- Joueur 1 -->
-            <div class="player-zone blue" id="player1-zone">
+            <div class="player-zone" id="player1-zone">
                 <div class="player-header">
-                    <div class="player-avatar blue">1</div>
+                    <div class="player-avatar" id="p1-avatar">1</div>
                     <span class="player-name" id="p1-name">Joueur 1</span>
                     <span class="player-status" id="p1-status"></span>
                 </div>
                 <div class="question-text" id="p1-question">Chargement...</div>
-                <div class="options" id="p1-options">
-                    <!-- Options joueur 1 -->
-                </div>
+                <div class="options" id="p1-options"></div>
             </div>
 
-            <!-- Joueur 2 -->
-            <div class="player-zone red" id="player2-zone">
+            <div class="player-zone" id="player2-zone">
                 <div class="player-header">
-                    <div class="player-avatar red">2</div>
+                    <div class="player-avatar" id="p2-avatar">2</div>
                     <span class="player-name" id="p2-name">Joueur 2</span>
                     <span class="player-status" id="p2-status"></span>
                 </div>
                 <div class="question-text" id="p2-question">Chargement...</div>
-                <div class="options" id="p2-options">
-                    <!-- Options joueur 2 -->
-                </div>
+                <div class="options" id="p2-options"></div>
             </div>
         </div>
     </div>
@@ -967,34 +965,40 @@
                 showLotteryScreen();
             };
 
-            // INVITATION EN COURS DE PARTIE (Même équipe + Google Sheet)
+            // INVITATION EN COURS DE PARTIE
             $('btn-invite-midgame').onclick = async () => {
                 if (state.mode === 'duo') return; 
                 
+                const team = state.players[0].team; 
                 const pseudo2 = generatePseudo();
-                const player2 = { 
-                    pseudo: pseudo2, 
-                    team: state.players[0].team // Même équipe que J1
-                };
+                const player2 = { pseudo: pseudo2, team: team };
                 
                 state.players.push(player2);
                 state.mode = 'duo';
 
-                // INSCRIPTION DU JOUEUR 2 DANS LE GOOGLE SHEET
+                // Inscription Google Sheet pour le 2ème joueur
                 try {
-                    await fetch(CONFIG.sheetUrl, {
+                    fetch(CONFIG.sheetUrl, {
                         method: 'POST',
                         mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            action: 'register', 
-                            pseudo: player2.pseudo, 
-                            team: player2.team 
-                        })
+                        body: JSON.stringify({ action: 'register', pseudo: player2.pseudo, team: player2.team })
                     });
-                } catch (e) { console.error("Erreur inscription J2:", e); }
+                } catch (e) {}
                 
-                // Bascule UI
+                // --- MISE À JOUR VISUELLE ÉQUIPE ---
+                const teamLabel = team === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
+                const teamColor = team === 'blue' ? 'var(--team-blue)' : 'var(--team-red)';
+                
+                // On écrit l'équipe dans le titre Duo
+                $('duo-team-title').innerHTML = `🎮 Mode duo - <span style="color:${teamColor}; font-weight:800;">${teamLabel}</span>`;
+                
+                // On applique la couleur de l'équipe aux deux zones (bordures et avatars)
+                $('player1-zone').className = `player-zone ${team}`;
+                $('player2-zone').className = `player-zone ${team}`;
+                $('p1-avatar').className = `player-avatar ${team}`;
+                $('p2-avatar').className = `player-avatar ${team}`;
+                
+                // Bascule d'écran
                 $('game-screen').classList.remove('active');
                 $('game-duo-screen').classList.add('active');
                 
@@ -1007,6 +1011,7 @@
             $('btn-start').onclick = () => { registerPlayers(); showGameScreen(); };
             $('btn-leave').onclick = leaveGame;
             $('btn-rejoin').onclick = rejoinGame;
+            $('btn-leave-duo').onclick = leaveGame;
         }
 
         // === ÉCRAN TIRAGE AU SORT ===
@@ -1212,30 +1217,24 @@
 
 async function leaveGame() {
             if (state.mode === 'duo') {
-                const quitterTout = confirm("Voulez-vous quitter à deux ?\n\nOK : Tout le monde quitte.\nANNULER : Seul le collègue invité s'en va.");
+                // Si on est deux, on propose de ne retirer que le dernier arrivé
+                const quitterTout = confirm("Voulez-vous arrêter la partie pour TOUT LE MONDE ?\n\nOK : Fin du quiz.\nANNULER : Seul le collègue invité s'en va.");
                 
                 if (quitterTout) {
                     goToLeaveScreen();
                 } else {
                     // SEUL LE JOUEUR 2 S'EN VA
-                    const p2 = state.players.pop(); // Retire le J2
+                    const p2 = state.players.pop(); // On enlève le collègue
                     state.mode = 'solo';
                     
-                    // On avertit le Sheet que J2 part (optionnel)
-                    try {
-                        fetch(CONFIG.sheetUrl, {
-                            method: 'POST', mode: 'no-cors',
-                            body: JSON.stringify({ action: 'leaveGame', pseudo: p2.pseudo })
-                        });
-                    } catch(e){}
-
-                    // Retour à l'écran solo
+                    // Retour visuel immédiat vers l'écran solo
                     $('game-duo-screen').classList.remove('active');
                     $('game-screen').classList.add('active');
                     $('game-pseudo').textContent = state.players[0].pseudo;
                 }
             } else {
-                if (confirm("Voulez-vous vraiment quitter ?")) {
+                // En solo, confirmation standard
+                if (confirm("Voulez-vous vraiment quitter le quiz ?")) {
                     goToLeaveScreen();
                 }
             }
