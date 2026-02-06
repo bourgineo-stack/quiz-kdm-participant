@@ -775,10 +775,11 @@
                 <div class="team-dot" id="game-team-dot"></div>
                 <span id="game-pseudo">Pseudo</span>
             </div>
-            <button class="btn-leave" id="btn-leave"> Quitter</button>
-            <button id="btn-invite-midgame" style="background:none; border:1px solid white; color:white; border-radius:5px; padding:2px 8px; font-size:0.7rem; cursor:pointer; margin-left:10px;">+ Inviter un collègue</button>
+            <div style="display: flex; gap: 8px;">
+                <button id="btn-invite-midgame" class="btn-leave" style="background: rgba(255,255,255,0.1); border-color: white;">➕ Inviter un collègue</button>
+                <button class="btn-leave" id="btn-leave">🚪 Quitter</button>
+            </div>
             <div class="timer" id="game-timer">2:00</div>
-            <button class="btn-refresh" id="btn-invite-midgame" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; margin-left: 5px; color: white; border-color: white;">➕ Inviter un collègue</button>
         </header>
 
         <div class="phase-bar vote" id="phase-bar">
@@ -966,26 +967,40 @@
                 showLotteryScreen();
             };
 
-            // INVITATION EN COURS DE PARTIE
-            $('btn-invite-midgame').onclick = () => {
-                if (state.mode === 'duo') return; // Déjà en duo
+            // INVITATION EN COURS DE PARTIE (Même équipe + Google Sheet)
+            $('btn-invite-midgame').onclick = async () => {
+                if (state.mode === 'duo') return; 
                 
                 const pseudo2 = generatePseudo();
-                state.players.push({ 
+                const player2 = { 
                     pseudo: pseudo2, 
-                    team: state.players[0].team // Même équipe forcée
-                });
-                state.mode = 'duo';
+                    team: state.players[0].team // Même équipe que J1
+                };
                 
-                // On cache l'écran solo, on affiche le duo
+                state.players.push(player2);
+                state.mode = 'duo';
+
+                // INSCRIPTION DU JOUEUR 2 DANS LE GOOGLE SHEET
+                try {
+                    await fetch(CONFIG.sheetUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            action: 'register', 
+                            pseudo: player2.pseudo, 
+                            team: player2.team 
+                        })
+                    });
+                } catch (e) { console.error("Erreur inscription J2:", e); }
+                
+                // Bascule UI
                 $('game-screen').classList.remove('active');
                 $('game-duo-screen').classList.add('active');
                 
-                // Initialisation des noms
                 $('p1-name').textContent = state.players[0].pseudo;
                 $('p2-name').textContent = state.players[1].pseudo;
                 
-                // Rafraîchir l'affichage des questions pour le nouveau joueur
                 onQuestionChange(getQuizState(state.referenceTime));
             };
 
@@ -1197,16 +1212,27 @@
 
 async function leaveGame() {
             if (state.mode === 'duo') {
-                const choix = confirm("Cliquez sur OK pour quitter TOUT LE MONDE.\nCliquez sur ANNULER pour que seul le 2ème joueur s'en aille.");
-                if (choix) {
+                const quitterTout = confirm("Voulez-vous quitter à deux ?\n\nOK : Tout le monde quitte.\nANNULER : Seul le collègue invité s'en va.");
+                
+                if (quitterTout) {
                     goToLeaveScreen();
                 } else {
-                    // Seul le joueur 2 part
-                    state.players.pop();
+                    // SEUL LE JOUEUR 2 S'EN VA
+                    const p2 = state.players.pop(); // Retire le J2
                     state.mode = 'solo';
+                    
+                    // On avertit le Sheet que J2 part (optionnel)
+                    try {
+                        fetch(CONFIG.sheetUrl, {
+                            method: 'POST', mode: 'no-cors',
+                            body: JSON.stringify({ action: 'leaveGame', pseudo: p2.pseudo })
+                        });
+                    } catch(e){}
+
+                    // Retour à l'écran solo
                     $('game-duo-screen').classList.remove('active');
                     $('game-screen').classList.add('active');
-                    return;
+                    $('game-pseudo').textContent = state.players[0].pseudo;
                 }
             } else {
                 if (confirm("Voulez-vous vraiment quitter ?")) {
