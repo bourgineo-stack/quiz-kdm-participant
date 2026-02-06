@@ -21,987 +21,276 @@
             --warning: #FFA726;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--divia-purple);
             min-height: 100vh;
-            min-height: -webkit-fill-available;
             color: var(--gray-dark);
             overflow-x: hidden;
         }
 
-        /* === ÉCRAN D'INSCRIPTION === */
-        .screen {
-            display: none;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
-        }
+        /* === STRUCTURE === */
+        .screen { display: none; min-height: 100vh; flex-direction: column; }
+        .screen.active { display: flex; }
 
-        .screen.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header */
+        /* Header Principal */
         .header {
             background: var(--divia-magenta);
             padding: 1.5rem 1rem 2.5rem;
             text-align: center;
             position: relative;
         }
-
         .header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 30px;
-            background: var(--divia-purple);
-            border-radius: 30px 30px 0 0;
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 30px;
+            background: var(--divia-purple); border-radius: 30px 30px 0 0;
         }
+        .header h1 { color: white; font-size: 1.6rem; font-weight: 800; }
+        .header-logo { font-size: 0.8rem; color: rgba(255,255,255,0.8); letter-spacing: 2px; text-transform: uppercase; }
 
-        .header-logo {
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.8);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 0.3rem;
-        }
-
-        .header h1 {
-            color: white;
-            font-size: 1.6rem;
-            font-weight: 800;
-        }
-
-        /* Container */
-        .container {
-            flex: 1;
-            padding: 1.5rem 1rem;
-            background: var(--divia-purple);
-        }
-
-        /* Card */
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--divia-purple);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-title::before {
-            content: '';
-            width: 4px;
-            height: 20px;
-            background: var(--divia-magenta);
-            border-radius: 2px;
-        }
-
-        /* Pseudo généré */
-        .pseudo-display {
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .generated-pseudo {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--divia-purple);
-            background: var(--gray-light);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            display: inline-block;
-            margin-bottom: 0.8rem;
-        }
-
-        .generated-pseudo.small {
-            font-size: 1.4rem;
-            padding: 0.7rem 1.2rem;
-        }
-
-        .btn-refresh {
-            background: transparent;
-            border: 2px solid #E0E0E0;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            font-family: inherit;
-            font-size: 0.85rem;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-refresh:hover, .btn-refresh:active {
-            border-color: var(--divia-magenta);
-            color: var(--divia-magenta);
-        }
-
-        /* Input */
-        .input-group {
-            margin-bottom: 1.2rem;
-        }
-
-        .input-group label {
-            display: block;
-            font-weight: 600;
-            color: var(--gray-dark);
-            margin-bottom: 0.4rem;
-            font-size: 0.9rem;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #E0E0E0;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: all 0.3s ease;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--divia-magenta);
-            box-shadow: 0 0 0 4px var(--divia-magenta-light);
-        }
-
-        .input-hint {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 0.4rem;
-        }
-
-        /* Boutons */
-        .btn {
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: var(--divia-magenta);
-            color: white;
-        }
-
-        .btn-primary:hover, .btn-primary:active {
-            background: var(--divia-magenta-dark);
-        }
-
-        .btn-primary:disabled {
-            background: #CCC;
-            cursor: not-allowed;
-        }
-
-        /* Tirage au sort */
-        .lottery-wheel {
-            width: 180px;
-            height: 180px;
-            margin: 1.5rem auto;
-            border-radius: 50%;
-            background: conic-gradient(
-                var(--team-blue) 0deg 180deg,
-                var(--team-red) 180deg 360deg
-            );
-            position: relative;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            animation: spin 3s cubic-bezier(0.17, 0.67, 0.12, 0.99) forwards;
-        }
-
-        .lottery-wheel::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .lottery-wheel::after {
-            content: '';
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 12px solid transparent;
-            border-bottom: 20px solid white;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(var(--final-rotation, 1800deg)); }
-        }
-
-        /* Résultat équipe */
-        .team-result {
-            text-align: center;
-            padding: 1rem 0;
-        }
-
-        .team-badge {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3.5rem;
-            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-
-        .team-badge.blue { background: linear-gradient(135deg, var(--team-blue) 0%, #1565C0 100%); }
-        .team-badge.red { background: linear-gradient(135deg, var(--team-red) 0%, #C62828 100%); }
-
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            100% { transform: scale(1); }
-        }
-
-        .team-name {
-            font-size: 1.5rem;
-            font-weight: 800;
-        }
-        .team-name.blue { color: var(--team-blue); }
-        .team-name.red { color: var(--team-red); }
-
-        .team-slogan {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* === ÉCRAN DE JEU === */
+        /* Header Jeu */
         .game-header {
             background: var(--divia-magenta);
-            padding: 1rem;
+            padding: 0.8rem 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             color: white;
+            gap: 10px;
         }
+        .team-indicator { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.9rem; flex: 1; }
+        .team-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .team-dot.blue { background: var(--team-blue); border: 2px solid white; }
+        .team-dot.red { background: var(--team-red); border: 2px solid white; }
 
-        .game-header .team-indicator {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 700;
-        }
+        .timer { font-size: 1.2rem; font-weight: 800; min-width: 50px; text-align: right; }
+        .timer.danger { color: #FFEBEE; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-        .game-header .team-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .team-dot.blue { background: var(--team-blue); }
-        .team-dot.red { background: var(--team-red); }
-
-        .game-header .timer {
-            font-size: 1.3rem;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .timer.warning { color: var(--warning); }
-        .timer.danger { color: var(--team-red); animation: pulse 0.5s infinite; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Phase indicator */
-        .phase-bar {
-            background: rgba(0,0,0,0.2);
-            padding: 0.6rem 1rem;
-            text-align: center;
-            color: white;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .phase-bar.vote { background: var(--divia-magenta-dark); }
-        .phase-bar.explain { background: var(--success); }
-
-        /* Question card */
-        .question-card {
-            background: white;
-            margin: 1rem;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-
-        .question-header {
-            background: var(--gray-light);
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .question-number {
-            background: var(--divia-magenta);
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        .question-body {
-            padding: 1.2rem;
-        }
-
-        .question-text {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--divia-purple);
-            line-height: 1.4;
-            margin-bottom: 1.2rem;
-        }
-
-        /* Options */
-        .options {
-            display: grid;
-            gap: 0.6rem;
-        }
-
-        .option-btn {
-            width: 100%;
-            padding: 1rem;
-            background: white;
-            border: 2px solid #E0E0E0;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-family: inherit;
-            font-weight: 600;
-            color: var(--gray-dark);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .option-btn .letter {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: var(--gray-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            flex-shrink: 0;
-        }
-
-        .option-btn:active {
-            transform: scale(0.98);
-        }
-
-        .option-btn.selected {
-            border-color: var(--divia-magenta);
-            background: var(--divia-magenta-light);
-        }
-
-        .option-btn.selected .letter {
-            background: var(--divia-magenta);
-            color: white;
-        }
-
-        .option-btn.correct {
-            border-color: var(--success);
-            background: #E8F5E9;
-        }
-
-        .option-btn.correct .letter {
-            background: var(--success);
-            color: white;
-        }
-
-        .option-btn.wrong {
-            border-color: var(--team-red);
-            background: #FFEBEE;
-            opacity: 0.6;
-        }
-
-        .option-btn:disabled {
-            cursor: default;
-        }
-
-        /* Status message */
-        .status-message {
-            text-align: center;
-            padding: 1rem;
-            font-weight: 600;
-            color: #666;
-        }
-
-        .status-message.success {
-            color: var(--success);
-        }
-
-        /* Info panel */
-        .info-panel {
-            margin: 0 1rem 1rem;
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-
-        .info-header {
-            background: var(--success);
-            color: white;
-            padding: 1rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .info-content {
-            padding: 1.2rem;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: var(--gray-dark);
-        }
-
-        .info-content .highlight {
-            background: var(--divia-magenta);
-            color: white;
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
-            font-weight: 700;
-        }
-
-        .info-content img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-
-        .info-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-            font-size: 0.85rem;
-        }
-
-        .info-content th, .info-content td {
-            padding: 0.6rem;
-            border: 1px solid #E0E0E0;
-            text-align: left;
-        }
-
-        .info-content th {
-            background: var(--gray-light);
-            font-weight: 700;
-        }
-
-        /* === MODE DUO (split screen) === */
-        .duo-container {
-            display: none;
-        }
-
-        .duo-container.active {
-            display: grid;
-            grid-template-rows: 1fr 1fr;
-            min-height: calc(100vh - 120px);
-            gap: 4px;
-            background: var(--divia-purple);
-            padding: 4px;
-        }
-
-        .player-zone {
-            background: white;
-            border-radius: 16px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .player-zone .player-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding-bottom: 0.8rem;
-            margin-bottom: 0.8rem;
-            border-bottom: 2px solid;
-        }
-
-        .player-zone.blue .player-header { border-color: var(--team-blue); }
-        .player-zone.red .player-header { border-color: var(--team-red); }
-        /* Couleur du numéro du joueur (l'avatar) */
-        .player-avatar.blue { background: var(--team-blue); }
-        .player-avatar.red { background: var(--team-red); }
-
-        .player-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-        }
-
-        .player-avatar.blue { background: var(--team-blue); }
-        .player-avatar.red { background: var(--team-red); }
-
-        .player-name {
-            font-weight: 700;
-            flex: 1;
-        }
-
-        .player-status {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        .player-zone .question-text {
-            font-size: 0.95rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .player-zone .options {
-            gap: 0.4rem;
-            flex: 1;
-        }
-
-        .player-zone .option-btn {
-            padding: 0.7rem;
-            font-size: 0.9rem;
-        }
-
-        .player-zone .option-btn .letter {
-            width: 28px;
-            height: 28px;
-            font-size: 0.85rem;
-        }
-
-        /* Loading */
-        .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: var(--divia-purple);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255,255,255,0.2);
-            border-top-color: var(--divia-magenta);
-            border-radius: 50%;
-            animation: spinner 1s linear infinite;
-            margin-bottom: 1.5rem;
-        }
-
-        @keyframes spinner {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        /* Error */
-        .error-message {
-            background: var(--team-red);
-            color: white;
-            padding: 1rem;
-            border-radius: 12px;
-            margin: 1rem;
-            text-align: center;
-            font-weight: 600;
-        }
-      
-/* Bouton quitter */
+        /* Boutons */
+        .btn { width: 100%; padding: 1rem; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: var(--divia-magenta); color: white; }
+        
         .btn-leave {
             background: rgba(0,0,0,0.2);
             border: 1px solid rgba(255,255,255,0.4);
-            color: white;
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.8rem;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.2s;
+            color: white; padding: 0.4rem 0.6rem; border-radius: 8px;
+            font-size: 0.75rem; cursor: pointer; font-weight: 700;
         }
-        .btn-leave:hover {
-            background: var(--team-red);
-            border-color: white;
+        .btn-invite {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid white; color: white; padding: 0.4rem 0.6rem;
+            border-radius: 8px; font-size: 0.75rem; cursor: pointer;
         }
 
-/* Écran de fin */
-.leave-screen {
-    display: none;
-    min-height: 100vh;
-    background: var(--divia-purple);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 2rem;
-    color: white;
-}
-.leave-screen.active {
-    display: flex;
-}
-.leave-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-}
-.leave-title {
-    font-size: 1.8rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-}
-.leave-message {
-    font-size: 1rem;
-    opacity: 0.8;
-    margin-bottom: 2rem;
-}
-.btn-rejoin {
-    background: var(--divia-magenta);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 12px;
-    font-family: inherit;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-}
+        /* Cartes & Quiz */
+        .container { flex: 1; padding: 1.5rem 1rem; background: var(--divia-purple); }
+        .card { background: white; border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .card-title { font-size: 1.1rem; font-weight: 700; color: var(--divia-purple); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .card-title::before { content: ''; width: 4px; height: 20px; background: var(--divia-magenta); border-radius: 2px; }
+
+        .pseudo-display { text-align: center; margin-bottom: 1.5rem; }
+        .generated-pseudo { font-size: 1.8rem; font-weight: 800; color: var(--divia-purple); background: var(--gray-light); padding: 0.8rem; border-radius: 12px; display: inline-block; margin-bottom: 0.5rem; }
+        
+        .phase-bar { background: rgba(0,0,0,0.2); padding: 0.6rem; text-align: center; color: white; font-weight: 600; font-size: 0.85rem; }
+        .phase-bar.explain { background: var(--success); }
+
+        /* Mode Duo */
+        .duo-container.active { display: grid; grid-template-rows: 1fr 1fr; gap: 4px; padding: 4px; background: var(--divia-purple); }
+        .player-zone { background: white; border-radius: 16px; padding: 0.8rem; display: flex; flex-direction: column; border: 3px solid transparent; }
+        .player-zone.blue { border-color: var(--team-blue); }
+        .player-zone.red { border-color: var(--team-red); }
+        
+        .player-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #EEE; padding-bottom: 0.5rem; }
+        .player-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; }
+        .player-avatar.blue { background: var(--team-blue); }
+        .player-avatar.red { background: var(--team-red); }
+
+        .options { display: grid; gap: 0.5rem; }
+        .option-btn { width: 100%; padding: 0.8rem; background: white; border: 2px solid #E0E0E0; border-radius: 10px; text-align: left; display: flex; align-items: center; gap: 0.5rem; font-family: inherit; font-weight: 600; }
+        .option-btn.selected { border-color: var(--divia-magenta); background: var(--divia-magenta-light); }
+        .option-btn.correct { border-color: var(--success); background: #E8F5E9; }
+        .option-btn.wrong { border-color: var(--team-red); background: #FFEBEE; opacity: 0.7; }
+        .letter { width: 25px; height: 25px; border-radius: 50%; background: #EEE; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+
+        /* Écran de fin */
+        .leave-screen { display: none; min-height: 100vh; background: var(--divia-purple); flex-direction: column; align-items: center; justify-content: center; text-align: center; color: white; padding: 2rem; }
+        .leave-screen.active { display: flex; }
     </style>
 </head>
 <body>
-    <!-- Écran de chargement -->
+
     <div class="loading" id="loading-screen">
         <div class="loading-spinner"></div>
         <div class="loading-text">Connexion au quiz...</div>
     </div>
 
-    <!-- Écran d'inscription -->
     <div class="screen" id="register-screen">
         <header class="header">
             <div class="header-logo">Keolis Dijon Métropole</div>
             <h1>🌱 Éco-Quiz</h1>
         </header>
-        
         <div class="container">
             <div class="card">
                 <h2 class="card-title">Bienvenue !</h2>
                 <div class="pseudo-display">
                     <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.8rem;">Votre pseudo :</p>
                     <div class="generated-pseudo" id="generated-pseudo">Vélo427</div>
-                    <button class="btn-refresh" id="btn-refresh">🔄 Autre pseudo</button>
+                    <button class="btn-refresh" id="btn-refresh">🔄 Changer</button>
                 </div>
-                <button class="btn btn-primary" id="btn-join-solo">
-                    🎲 Tirer mon équipe
-                </button>
+                <button class="btn btn-primary" id="btn-join-solo">🎲 Tirer mon équipe</button>
             </div>
         </div>
     </div>
 
-    <!-- Écran tirage au sort -->
     <div class="screen" id="lottery-screen">
-        <header class="header">
-            <div class="header-logo">Keolis Dijon Métropole</div>
-            <h1>🌱 Éco-Quiz</h1>
-        </header>
-        
         <div class="container">
-            <div class="card">
+            <div class="card" style="margin-top: 2rem; text-align: center;">
                 <h2 class="card-title">Tirage au sort</h2>
-                
                 <div id="lottery-anim">
                     <div class="lottery-wheel" id="wheel"></div>
-                    <p style="text-align: center; color: #666; margin-top: 1rem;">La roue tourne...</p>
+                    <p style="color: #666; margin-top: 1rem;">La roue tourne...</p>
                 </div>
-
                 <div class="team-result" id="team-result" style="display: none;">
                     <div class="team-badge" id="team-badge">🚌</div>
                     <h3 class="team-name" id="team-name">Équipe Bleue</h3>
                     <p class="team-slogan" id="team-slogan">Les Éco-conducteurs</p>
-                    <button class="btn btn-primary" id="btn-start">
-                        ✓ C'est parti !
-                    </button>
+                    <button class="btn btn-primary" id="btn-start">✓ C'est parti !</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Écran de jeu (solo) -->
     <div class="screen" id="game-screen">
         <header class="game-header">
             <div class="team-indicator">
                 <div class="team-dot" id="game-team-dot"></div>
                 <span id="game-pseudo">Pseudo</span>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button id="btn-invite-midgame" class="btn-leave" style="background: rgba(255,255,255,0.1); border-color: white;">➕ Inviter un collègue</button>
-                <button class="btn-leave" id="btn-leave">🚪 Quitter</button>
-            </div>
+            <button id="btn-invite-midgame" class="btn-invite">➕ Inviter un collègue</button>
+            <button class="btn-leave" id="btn-leave-solo">🚪 Quitter</button>
             <div class="timer" id="game-timer">2:00</div>
         </header>
-
-        <div class="phase-bar vote" id="phase-bar">
-            ⏱️ Phase de vote
-        </div>
-
-        <div id="vote-phase">
+        <div class="phase-bar vote" id="phase-bar">⏱️ Phase de vote</div>
+        <div id="vote-phase" class="container">
             <div class="question-card">
-                <div class="question-header">
-                    <span class="question-number">Question <span id="q-num">1</span>/10</span>
-                </div>
+                <div class="question-header"><span class="question-number">Question <span id="q-num">1</span>/10</span></div>
                 <div class="question-body">
-                    <div class="question-text" id="question-text">
-                        Chargement...
-                    </div>
-                    <div class="options" id="options-container">
-                        <!-- Options générées dynamiquement -->
-                    </div>
+                    <div class="question-text" id="question-text">Chargement...</div>
+                    <div class="options" id="options-container"></div>
                     <div class="status-message" id="status-message"></div>
                 </div>
             </div>
         </div>
-
-        <div id="explain-phase" style="display: none;">
-            <div class="question-card">
-                <div class="question-header">
-                    <span class="question-number">Question <span id="q-num-explain">1</span>/10</span>
-                    <span style="color: var(--success); font-weight: 700;">✓ Terminé</span>
-                </div>
-                <div class="question-body">
-                    <div class="question-text" id="question-text-explain"></div>
-                    <div class="options" id="options-reveal">
-                        <!-- Options avec réponse révélée -->
-                    </div>
-                </div>
+        <div id="explain-phase" class="container" style="display: none;">
+            <div class="card">
+                <div class="question-text" id="question-text-explain"></div>
+                <div class="options" id="options-reveal"></div>
             </div>
-
-            <div class="info-panel">
-                <div class="info-header">
-                    💡 Le saviez-vous ?
-                </div>
-                <div class="info-content" id="info-content">
-                    <!-- Contenu chargé depuis le fichier HTML -->
-                </div>
+            <div class="card" style="background: #E8F5E9;">
+                <div class="card-title">💡 Le saviez-vous ?</div>
+                <div id="info-content" class="info-content"></div>
             </div>
         </div>
     </div>
 
-    <!-- Écran de jeu (duo) -->
     <div class="screen" id="game-duo-screen">
         <header class="game-header">
-            <div class="team-indicator">
-                <span id="duo-team-title">🎮 Mode duo</span>
-            </div>
+            <div class="team-indicator"><span id="duo-team-title">🎮 Mode duo</span></div>
             <button class="btn-leave" id="btn-leave-duo">🚪 Quitter</button>
             <div class="timer" id="game-timer-duo">2:00</div>
         </header>
-
-        <div class="phase-bar vote" id="phase-bar-duo">
-            ⏱️ Phase de vote
-        </div>
-
+        <div class="phase-bar vote" id="phase-bar-duo">⏱️ Phase de vote</div>
         <div class="duo-container active" id="duo-game-container">
             <div class="player-zone" id="player1-zone">
                 <div class="player-header">
                     <div class="player-avatar" id="p1-avatar">1</div>
-                    <span class="player-name" id="p1-name">Joueur 1</span>
-                    <span class="player-status" id="p1-status"></span>
+                    <span class="player-name" id="p1-name">J1</span>
+                    <span id="p1-status" class="player-status"></span>
                 </div>
-                <div class="question-text" id="p1-question">Chargement...</div>
+                <div class="question-text" id="p1-question" style="font-size: 0.8rem; margin-bottom: 5px;"></div>
                 <div class="options" id="p1-options"></div>
             </div>
-
             <div class="player-zone" id="player2-zone">
                 <div class="player-header">
                     <div class="player-avatar" id="p2-avatar">2</div>
-                    <span class="player-name" id="p2-name">Joueur 2</span>
-                    <span class="player-status" id="p2-status"></span>
+                    <span class="player-name" id="p2-name">J2</span>
+                    <span id="p2-status" class="player-status"></span>
                 </div>
-                <div class="question-text" id="p2-question">Chargement...</div>
+                <div class="question-text" id="p2-question" style="font-size: 0.8rem; margin-bottom: 5px;"></div>
                 <div class="options" id="p2-options"></div>
             </div>
         </div>
     </div>
-<!-- Écran quitter -->
-<div class="screen" id="leave-screen">
-    <div class="leave-icon">👋</div>
-    <h2 class="leave-title">Merci d'avoir joué !</h2>
-    <p class="leave-message">Vous avez quitté la partie.<br>À bientôt !</p>
-    <button class="btn-rejoin" id="btn-rejoin">🔄 Rejouer</button>
-</div>
+
+    <div class="screen" id="leave-screen">
+        <h1 style="font-size: 4rem;">👋</h1>
+        <h2>Merci d'avoir joué !</h2>
+        <p style="margin: 1rem 0 2rem; opacity: 0.8;">Vous avez quitté la partie.<br>À bientôt !</p>
+        <button class="btn btn-primary" id="btn-rejoin" style="width: auto; padding: 1rem 2rem;">🔄 Rejouer</button>
+    </div>
+
     <script src="config.js"></script>
     <script>
-        // === ÉTAT DE L'APPLICATION ===
         const state = {
-            referenceTime: null,      // Timestamp de référence (depuis Sheet ou calculé)
-            players: [],              // [{pseudo, team}]
-            currentAnswer: {},        // {player1: 'a', player2: null}
-            mode: 'solo',             // 'solo' ou 'duo'
-            lastQuestionIndex: -1,    // Pour détecter le changement de question
-            submitted: {}             // {player1: false, player2: false}
+            referenceTime: null,
+            players: [],
+            currentAnswer: {},
+            mode: 'solo',
+            lastQuestionIndex: -1,
+            submitted: {}
         };
 
-        // === ÉLÉMENTS DOM ===
         const $ = id => document.getElementById(id);
 
-        // === INITIALISATION ===
         async function init() {
-    try {
-        // Charger la config depuis le Sheet
-        const loaded = await loadConfigFromSheet();
-        if (!loaded || QUESTIONS.length === 0) {
-            throw new Error('Impossible de charger les questions');
-        }
-        
-        // Récupérer l'heure de référence
-        state.referenceTime = SETTINGS.startTime || Date.now();
-        
-        // Masquer le chargement, afficher l'inscription
-        $('loading-screen').style.display = 'none';
-        $('register-screen').classList.add('active');
-        
-        // Event listeners
-        setupEventListeners();
-        
-    } catch (error) {
-        console.error('Erreur init:', error);
-        $('loading-screen').innerHTML = `
-            <div class="error-message">
-                Impossible de se connecter au quiz.<br>
-                Vérifiez votre connexion et rechargez la page.
-            </div>
-        `;
-    }
-}
-
-        async function fetchReferenceTime() {
             try {
-                const response = await fetch(CONFIG.sheetUrl + '?action=getStartTime');
-                const data = await response.json();
-                
-                // Si mode session et startTime défini, on l'utilise
-                if (data.startTime && data.mode === 'session') {
-                    return parseInt(data.startTime);
-                }
-                
-                // Sinon mode loop : on se cale sur un cycle
-                const cycleLength = (CONFIG.voteDuration + CONFIG.explainDuration) * 1000;
-                const totalCycle = cycleLength * QUESTIONS.length;
-                return data.serverTime - (data.serverTime % totalCycle);
-                
+                const loaded = await loadConfigFromSheet();
+                state.referenceTime = SETTINGS.startTime || Date.now();
+                $('loading-screen').style.display = 'none';
+                $('register-screen').classList.add('active');
+                setupEventListeners();
             } catch (error) {
-                console.error('Erreur fetch startTime:', error);
-                // Fallback : heure locale
-                const now = Date.now();
-                return now - (now % 60000);
+                console.error(error);
+                $('loading-screen').innerHTML = "<div class='card'>Erreur de connexion</div>";
             }
         }
 
-        // === GÉNÉRATEUR DE PSEUDO ===
-        const PSEUDO_WORDS = [
-            'Vélo', 'Tram', 'Bus', 'Trottinette', 'Marche', 'Covoit',
-            'Solaire', 'Éolien', 'Isolation', 'Pull', 'Gourde', 'Compost'
-        ];
-
-        function generatePseudo() {
-            const word = PSEUDO_WORDS[Math.floor(Math.random() * PSEUDO_WORDS.length)];
-            const number = Math.floor(Math.random() * 900) + 100; // 100-999
-            return `${word}${number}`;
-        }
-
         function setupEventListeners() {
-            // Refresh Pseudo
             $('btn-refresh').onclick = () => { $('generated-pseudo').textContent = generatePseudo(); };
-
-            // Inscription Solo
+            
             $('btn-join-solo').onclick = () => {
                 state.mode = 'solo';
                 state.players = [{ pseudo: $('generated-pseudo').textContent, team: null }];
                 showLotteryScreen();
             };
 
-            // INVITATION EN COURS DE PARTIE
             $('btn-invite-midgame').onclick = async () => {
-                if (state.mode === 'duo') return; 
-                
-                const team = state.players[0].team; 
-                const pseudo2 = generatePseudo();
-                const player2 = { pseudo: pseudo2, team: team };
-                
+                if (state.mode === 'duo') return;
+                const team = state.players[0].team;
+                const player2 = { pseudo: generatePseudo(), team: team };
                 state.players.push(player2);
                 state.mode = 'duo';
 
-                // Inscription Google Sheet pour le 2ème joueur
+                // Inscription J2
                 try {
                     fetch(CONFIG.sheetUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        body: JSON.stringify({ action: 'register', pseudo: player2.pseudo, team: player2.team })
+                        method: 'POST', mode: 'no-cors',
+                        body: JSON.stringify({ action: 'register', pseudo: player2.pseudo, team: team })
                     });
                 } catch (e) {}
-                
-                // --- MISE À JOUR VISUELLE ÉQUIPE ---
+
+                // UI Duo
                 const teamLabel = team === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
-                const teamColor = team === 'blue' ? 'var(--team-blue)' : 'var(--team-red)';
-                
-                // On écrit l'équipe dans le titre Duo
-                $('duo-team-title').innerHTML = `🎮 Mode duo - <span style="color:${teamColor}; font-weight:800;">${teamLabel}</span>`;
-                
-                // On applique la couleur de l'équipe aux deux zones (bordures et avatars)
+                $('duo-team-title').innerHTML = `🎮 Duo - <span class='team-dot ${team}'></span> ${teamLabel}`;
                 $('player1-zone').className = `player-zone ${team}`;
                 $('player2-zone').className = `player-zone ${team}`;
                 $('p1-avatar').className = `player-avatar ${team}`;
                 $('p2-avatar').className = `player-avatar ${team}`;
                 
-                // Bascule d'écran
                 $('game-screen').classList.remove('active');
                 $('game-duo-screen').classList.add('active');
-                
                 $('p1-name').textContent = state.players[0].pseudo;
                 $('p2-name').textContent = state.players[1].pseudo;
                 
@@ -1009,234 +298,24 @@
             };
 
             $('btn-start').onclick = () => { registerPlayers(); showGameScreen(); };
-            $('btn-leave').onclick = leaveGame;
-            $('btn-rejoin').onclick = rejoinGame;
+            $('btn-leave-solo').onclick = leaveGame;
             $('btn-leave-duo').onclick = leaveGame;
+            $('btn-rejoin').onclick = rejoinGame;
         }
 
-        // === ÉCRAN TIRAGE AU SORT ===
-        function showLotteryScreen() {
-            $('register-screen').classList.remove('active');
-            $('lottery-screen').classList.add('active');
-            
-            // Déterminer l'équipe
-            const team = Math.random() > 0.5 ? 'blue' : 'red';
-            state.players[0].team = team;
-            
-            // Animation de la roue
-            const baseRotation = 1800;
-            const teamOffset = team === 'blue' ? 45 : 225;
-            const finalRotation = baseRotation + teamOffset + (Math.random() * 60 - 30);
-            
-            $('wheel').style.setProperty('--final-rotation', `${finalRotation}deg`);
-            
-            // Afficher le résultat après l'animation
-            setTimeout(() => {
-                $('lottery-anim').style.display = 'none';
-                showTeamResult(team);
-            }, 3500);
-        }
-
-        function showTeamResult(team) {
-            const result = $('team-result');
-            result.style.display = 'block';
-            
-            $('team-badge').className = `team-badge ${team}`;
-            $('team-badge').textContent = team === 'blue' ? '🚌' : '🚋';
-            $('team-name').className = `team-name ${team}`;
-            $('team-name').textContent = team === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
-            $('team-slogan').textContent = team === 'blue' ? 'Les Éco-conducteurs' : 'Les Éco-voyageurs';
-            
-            // Afficher l'option duo après un délai
-            setTimeout(() => {
-                $('duo-option').style.display = 'block';
-            }, 500);
-        }
-
-        // === ÉCRAN DE JEU ===
-        function showGameScreen() {
-            $('lottery-screen').classList.remove('active');
-            
+        async function leaveGame() {
             if (state.mode === 'duo') {
-                $('game-duo-screen').classList.add('active');
-                $('p1-name').textContent = state.players[0].pseudo;
-                $('p2-name').textContent = state.players[1].pseudo;
-                $('player1-zone').className = `player-zone ${state.players[0].team}`;
-                $('player2-zone').className = `player-zone ${state.players[1].team}`;
-            } else {
-                $('game-screen').classList.add('active');
-                $('game-pseudo').textContent = state.players[0].pseudo;
-                $('game-team-dot').className = `team-dot ${state.players[0].team}`;
-            }
-            
-            // Démarrer la boucle de mise à jour
-            startGameLoop();
-        }
-
-        async function registerPlayers() {
-            for (const player of state.players) {
-                console.log('Inscription:', player);
-                try {
-                    await fetch(CONFIG.sheetUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            action: 'register', 
-                            pseudo: player.pseudo,
-                            team: player.team 
-                        })
-                    });
-                } catch (error) {
-                    console.error('Erreur inscription:', error);
-                }
-            }
-        }
-
-        // === BOUCLE DE JEU ===
-        function startGameLoop() {
-            updateGame();
-            setInterval(updateGame, 500); // Mise à jour toutes les 500ms
-        }
-
-        function updateGame() {
-            const quizState = getQuizState(state.referenceTime);
-            
-            // Détecter le changement de question
-            if (quizState.questionIndex !== state.lastQuestionIndex) {
-                state.lastQuestionIndex = quizState.questionIndex;
-                state.currentAnswer = {};
-                state.submitted = {};
-                onQuestionChange(quizState);
-            }
-            
-            // Mettre à jour l'affichage
-            updateTimer(quizState);
-            updatePhase(quizState);
-        }
-
-        function onQuestionChange(quizState) {
-            const q = quizState.currentQuestion;
-            
-            if (state.mode === 'duo') {
-                // Mode duo
-                $('p1-question').textContent = q.text;
-                $('p2-question').textContent = q.text;
-                renderOptions('p1-options', q, 0);
-                renderOptions('p2-options', q, 1);
-                $('p1-status').textContent = '';
-                $('p2-status').textContent = '';
-            } else {
-                // Mode solo
-                $('q-num').textContent = quizState.questionIndex + 1;
-                $('question-text').textContent = q.text;
-                renderOptions('options-container', q, 0);
-                $('status-message').textContent = '';
-                $('status-message').className = 'status-message';
-            }
-        }
-
-        function renderOptions(containerId, question, playerIndex) {
-            const container = $(containerId);
-            const letters = ['A', 'B', 'C', 'D'];
-            
-            container.innerHTML = question.options.map((opt, i) => `
-                <button class="option-btn" data-index="${i}" data-player="${playerIndex}">
-                    <span class="letter">${letters[i]}</span>
-                    <span>${opt}</span>
-                </button>
-            `).join('');
-            
-            // Event listeners
-            container.querySelectorAll('.option-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = parseInt(btn.dataset.index);
-                    const player = parseInt(btn.dataset.player);
-                    handleAnswer(index, player, containerId);
-                });
-            });
-        }
-
-        function handleAnswer(answerIndex, playerIndex, containerId) {
-            const quizState = getQuizState(state.referenceTime);
-            
-            // Ne pas permettre de changer si déjà soumis ou phase explain
-            if (state.submitted[playerIndex] || quizState.phase === 'explain') return;
-            
-            // Marquer la sélection
-            state.currentAnswer[playerIndex] = answerIndex;
-            
-            // Mise à jour visuelle
-            const container = $(containerId);
-            container.querySelectorAll('.option-btn').forEach((btn, i) => {
-                btn.classList.toggle('selected', i === answerIndex);
-            });
-            
-            // Soumettre la réponse
-            submitAnswer(playerIndex, answerIndex, quizState);
-        }
-
-        async function submitAnswer(playerIndex, answerIndex, quizState) {
-    state.submitted[playerIndex] = true;
-    
-    const player = state.players[playerIndex];
-    const tour = getCurrentTour(state.referenceTime);
-    
-    const data = {
-        action: 'answer',
-        pseudo: player.pseudo,
-        team: player.team,
-        questionId: quizState.currentQuestion.id,
-        answer: answerIndex,
-        tour: tour
-    };
-    
-    console.log('Réponse soumise:', data);
-    
-    // Feedback visuel
-    if (state.mode === 'duo') {
-        $(`p${playerIndex + 1}-status`).textContent = '✓ Voté';
-    } else {
-        $('status-message').textContent = '✓ Réponse enregistrée';
-        $('status-message').className = 'status-message success';
-    }
-    
-    // Envoyer au Google Sheet
-    try {
-        await fetch(CONFIG.sheetUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-    } catch (error) {
-        console.error('Erreur envoi réponse:', error);
-    }
-}
-        
-
-async function leaveGame() {
-            if (state.mode === 'duo') {
-                // Si on est deux, on propose de ne retirer que le dernier arrivé
-                const quitterTout = confirm("Voulez-vous arrêter la partie pour TOUT LE MONDE ?\n\nOK : Fin du quiz.\nANNULER : Seul le collègue invité s'en va.");
-                
+                const quitterTout = confirm("Voulez-vous quitter à deux ?\n\nOK : Tout le monde quitte.\nANNULER : Seul le collègue invité s'en va.");
                 if (quitterTout) {
                     goToLeaveScreen();
                 } else {
-                    // SEUL LE JOUEUR 2 S'EN VA
-                    const p2 = state.players.pop(); // On enlève le collègue
+                    const p2 = state.players.pop();
                     state.mode = 'solo';
-                    
-                    // Retour visuel immédiat vers l'écran solo
                     $('game-duo-screen').classList.remove('active');
                     $('game-screen').classList.add('active');
-                    $('game-pseudo').textContent = state.players[0].pseudo;
                 }
             } else {
-                // En solo, confirmation standard
-                if (confirm("Voulez-vous vraiment quitter le quiz ?")) {
-                    goToLeaveScreen();
-                }
+                if (confirm("Voulez-vous vraiment quitter ?")) goToLeaveScreen();
             }
         }
 
@@ -1246,120 +325,135 @@ async function leaveGame() {
             $('leave-screen').classList.add('active');
         }
 
-function goToLeaveScreen() {
-    $('game-screen').classList.remove('active');
-    $('game-duo-screen').classList.remove('active');
-    $('leave-screen').classList.add('active');
-}
+        function rejoinGame() { location.reload(); }
 
-function rejoinGame() {
-    // Réinitialiser l'état
-    state.players = [];
-    state.currentAnswer = {};
-    state.submitted = {};
-    state.lastQuestionIndex = -1;
-    
-    // Retourner à l'inscription
-    $('leave-screen').classList.remove('active');
-    $('register-screen').classList.add('active');
-    
-    // Générer un nouveau pseudo
-    $('generated-pseudo').textContent = generatePseudo();
-}
+        // --- RESTE DE LA LOGIQUE (Questions, Timer, Lottery) ---
+        // (Gardez vos fonctions generatePseudo, showLotteryScreen, updateGame, etc.)
+        
+        function showLotteryScreen() {
+            $('register-screen').classList.remove('active');
+            $('lottery-screen').classList.add('active');
+            const team = Math.random() > 0.5 ? 'blue' : 'red';
+            state.players[0].team = team;
+            const finalRotation = 1800 + (team === 'blue' ? 45 : 225);
+            $('wheel').style.setProperty('--final-rotation', `${finalRotation}deg`);
+            setTimeout(() => {
+                $('lottery-anim').style.display = 'none';
+                $('team-result').style.display = 'block';
+                $('team-badge').className = `team-badge ${team}`;
+                $('team-badge').textContent = team === 'blue' ? '🚌' : '🚋';
+                $('team-name').className = `team-name ${team}`;
+                $('team-name').textContent = team === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
+            }, 3500);
+        }
 
-        function updateTimer(quizState) {
-            const timeStr = formatTime(quizState.timeRemaining);
-            
+        function showGameScreen() {
+            $('lottery-screen').classList.remove('active');
+            $('game-screen').classList.add('active');
+            $('game-pseudo').textContent = state.players[0].pseudo;
+            $('game-team-dot').className = `team-dot ${state.players[0].team}`;
+            startGameLoop();
+        }
+
+        function startGameLoop() { setInterval(updateGame, 500); }
+
+        function updateGame() {
+            const quizState = getQuizState(state.referenceTime);
+            if (quizState.questionIndex !== state.lastQuestionIndex) {
+                state.lastQuestionIndex = quizState.questionIndex;
+                state.currentAnswer = {};
+                state.submitted = {};
+                onQuestionChange(quizState);
+            }
+            updateTimer(quizState);
+            updatePhase(quizState);
+        }
+
+        function onQuestionChange(quizState) {
+            const q = quizState.currentQuestion;
             if (state.mode === 'duo') {
-                const timer = $('game-timer-duo');
-                timer.textContent = timeStr;
-                timer.className = 'timer' + getTimerClass(quizState);
+                $('p1-question').textContent = q.text;
+                $('p2-question').textContent = q.text;
+                renderOptions('p1-options', q, 0);
+                renderOptions('p2-options', q, 1);
             } else {
-                const timer = $('game-timer');
-                timer.textContent = timeStr;
-                timer.className = 'timer' + getTimerClass(quizState);
+                $('q-num').textContent = quizState.questionIndex + 1;
+                $('question-text').textContent = q.text;
+                renderOptions('options-container', q, 0);
             }
         }
 
-        function getTimerClass(quizState) {
-            if (quizState.phase === 'explain') return '';
-            if (quizState.timeRemaining <= 10) return ' danger';
-            if (quizState.timeRemaining <= 30) return ' warning';
-            return '';
-        }
-
-        function updatePhase(quizState) {
-    const q = quizState.currentQuestion;
-    const isVote = quizState.phase === 'vote';
-    const phaseLabel = isVote ? '⏱️ Phase de vote' : '💡 Explication';
-
-    if (state.mode === 'duo') {
-        const phaseBar = $('phase-bar-duo');
-        phaseBar.className = `phase-bar ${quizState.phase}`;
-        phaseBar.textContent = phaseLabel; // En duo, pas de bouton dedans, on peut laisser
-        
-        if (quizState.phase === 'explain') {
-            revealAnswers('p1-options', q.correct);
-            revealAnswers('p2-options', q.correct);
-        }
-    } else {
-        const phaseBar = $('phase-bar');
-        phaseBar.className = `phase-bar ${quizState.phase}`;
-        
-        // CORRECTION ICI : On cible un span précis ou on change juste le texte 
-        // sans toucher au bouton si vous l'aviez laissé dedans.
-        // Mais avec le bouton dans le header (conseillé), c'est plus simple :
-        phaseBar.textContent = phaseLabel; 
-
-        $('vote-phase').style.display = isVote ? 'block' : 'none';
-        $('explain-phase').style.display = isVote ? 'none' : 'block';
-        
-        if (!isVote) {
-            showExplanation(quizState);
-        }
-    }
-}
-
-        function revealAnswers(containerId, correctIndex) {
+        function renderOptions(containerId, question, playerIndex) {
             const container = $(containerId);
-            container.querySelectorAll('.option-btn').forEach((btn, i) => {
-                btn.disabled = true;
-                if (i === correctIndex) {
-                    btn.classList.add('correct');
-                } else if (btn.classList.contains('selected')) {
-                    btn.classList.add('wrong');
+            container.innerHTML = question.options.map((opt, i) => `
+                <button class="option-btn" onclick="handleAnswer(${i}, ${playerIndex}, '${containerId}')">
+                    <span class="letter">${['A','B','C','D'][i]}</span>
+                    <span>${opt}</span>
+                </button>
+            `).join('');
+        }
+
+        function handleAnswer(answerIndex, playerIndex, containerId) {
+            const quizState = getQuizState(state.referenceTime);
+            if (state.submitted[playerIndex] || quizState.phase === 'explain') return;
+            state.submitted[playerIndex] = true;
+            state.currentAnswer[playerIndex] = answerIndex;
+            
+            $(containerId).querySelectorAll('.option-btn')[answerIndex].classList.add('selected');
+            submitAnswer(playerIndex, answerIndex, quizState);
+        }
+
+        async function submitAnswer(pIdx, aIdx, qState) {
+            try {
+                fetch(CONFIG.sheetUrl, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: 'answer', pseudo: state.players[pIdx].pseudo, team: state.players[pIdx].team, questionId: qState.currentQuestion.id, answer: aIdx, tour: getCurrentTour(state.referenceTime) })
+                });
+            } catch (e) {}
+        }
+
+        function updateTimer(qs) {
+            const timeStr = formatTime(qs.timeRemaining);
+            const target = state.mode === 'duo' ? $('game-timer-duo') : $('game-timer');
+            target.textContent = timeStr;
+            target.classList.toggle('danger', qs.timeRemaining < 10);
+        }
+
+        function updatePhase(qs) {
+            const isVote = qs.phase === 'vote';
+            const label = isVote ? '⏱️ Phase de vote' : '💡 Explication';
+            if (state.mode === 'duo') {
+                $('phase-bar-duo').textContent = label;
+                $('phase-bar-duo').className = `phase-bar ${qs.phase}`;
+                if (!isVote) {
+                    revealAnswers('p1-options', qs.currentQuestion.correct, 0);
+                    revealAnswers('p2-options', qs.currentQuestion.correct, 1);
                 }
+            } else {
+                $('phase-bar').textContent = label;
+                $('phase-bar').className = `phase-bar ${qs.phase}`;
+                $('vote-phase').style.display = isVote ? 'block' : 'none';
+                $('explain-phase').style.display = isVote ? 'none' : 'block';
+                if (!isVote) {
+                    revealAnswers('options-reveal', qs.currentQuestion.correct, 0);
+                    $('info-content').innerHTML = qs.currentQuestion.info || 'Information non disponible.';
+                }
+            }
+        }
+
+        function revealAnswers(containerId, correct, pIdx) {
+            const btns = $(containerId).querySelectorAll('.option-btn');
+            if(!btns.length) return;
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === correct) btn.classList.add('correct');
+                else if (state.currentAnswer[pIdx] === i) btn.classList.add('wrong');
             });
         }
 
-        async function showExplanation(quizState) {
-            const q = quizState.currentQuestion;
-            
-            $('q-num-explain').textContent = quizState.questionIndex + 1;
-            $('question-text-explain').textContent = q.text;
-            
-            // Afficher les options avec la bonne réponse
-            const letters = ['A', 'B', 'C', 'D'];
-            $('options-reveal').innerHTML = q.options.map((opt, i) => {
-                const isCorrect = i === q.correct;
-                const wasSelected = state.currentAnswer[0] === i;
-                let classes = 'option-btn';
-                if (isCorrect) classes += ' correct';
-                else if (wasSelected) classes += ' wrong';
-                
-                return `
-                    <button class="${classes}" disabled>
-                        <span class="letter">${letters[i]}</span>
-                        <span>${opt}</span>
-                    </button>
-                `;
-            }).join('');
-            
-            // Afficher le contenu d'explication directement depuis config.js
-            $('info-content').innerHTML = q.info || '<p>Information non disponible.</p>';
-        }
+        const PSEUDO_WORDS = ['Vélo', 'Tram', 'Bus', 'Solaire', 'Gourde', 'Compost'];
+        function generatePseudo() { return PSEUDO_WORDS[Math.floor(Math.random() * PSEUDO_WORDS.length)] + Math.floor(Math.random() * 899 + 100); }
 
-        // === DÉMARRAGE ===
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
