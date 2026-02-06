@@ -791,6 +791,7 @@
             </div>
             <button class="btn-leave" id="btn-leave"> Quitter</button>
             <div class="timer" id="game-timer">2:00</div>
+            <button class="btn-refresh" id="btn-invite-midgame" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; margin-left: 5px; color: white; border-color: white;">➕ Inviter un collègue</button>
         </header>
 
         <div class="phase-bar vote" id="phase-bar">
@@ -992,6 +993,31 @@
             $('btn-start').onclick = () => { registerPlayers(); showGameScreen(); };
             $('btn-leave').onclick = leaveGame;
             $('btn-rejoin').onclick = rejoinGame;
+// Trouvez la fin de setupEventListeners et ajoutez ceci avant la fermeture } :
+
+$('btn-invite-midgame').onclick = () => {
+    const pseudo2 = generatePseudo();
+    // On ajoute le joueur 2 dans la même équipe que le joueur 1
+    state.players.push({ 
+        pseudo: pseudo2, 
+        team: state.players[0].team 
+    });
+    state.mode = 'duo';
+    
+    // On bascule l'affichage immédiatement
+    $('game-screen').classList.remove('active');
+    $('game-duo-screen').classList.add('active');
+    
+    // On initialise l'interface duo
+    $('p1-name').textContent = state.players[0].pseudo;
+    $('p2-name').textContent = state.players[1].pseudo;
+    $('player1-zone').className = `player-zone ${state.players[0].team}`;
+    $('player2-zone').className = `player-zone ${state.players[1].team}`;
+    
+    // On force la mise à jour des questions pour le nouveau joueur
+    onQuestionChange(getQuizState(state.referenceTime));
+};
+            
         }
 
         // === ÉCRAN TIRAGE AU SORT ===
@@ -1193,28 +1219,38 @@
         console.error('Erreur envoi réponse:', error);
     }
 }
-        async function leaveGame() {
-            // Fenêtre de confirmation native
-            if (!confirm("Voulez-vous vraiment quitter le quiz et perdre votre progression ?")) {
-                return;
-            }
+        // Remplacez votre fonction leaveGame actuelle par celle-ci :
 
-            const pseudo = state.players[0]?.pseudo;
-            if (pseudo) {
-                try {
-                    fetch(CONFIG.sheetUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'leaveGame', pseudo })
-                    });
-                } catch (e) {}
-            }
-            
-            $('game-screen').classList.remove('active');
+async function leaveGame() {
+    if (!confirm("Voulez-vous vraiment quitter ?")) return;
+
+    // Si on est en mode duo, on demande si c'est tout le monde ou juste un joueur
+    if (state.mode === 'duo') {
+        const quitterTout = confirm("Tout le monde quitte ? (Annuler pour que seul le joueur 2 quitte)");
+        
+        if (quitterTout) {
+            // Tout le monde quitte
+            goToLeaveScreen();
+        } else {
+            // Seul le joueur 2 s'en va, le joueur 1 continue en solo
+            state.players.pop(); // Retire le dernier joueur ajouté
+            state.mode = 'solo';
             $('game-duo-screen').classList.remove('active');
-            $('leave-screen').classList.add('active');
+            $('game-screen').classList.add('active');
+            // Réinitialise le pseudo affiché en solo
+            $('game-pseudo').textContent = state.players[0].pseudo;
         }
+    } else {
+        // En mode solo, on quitte normalement
+        goToLeaveScreen();
+    }
+}
+
+function goToLeaveScreen() {
+    $('game-screen').classList.remove('active');
+    $('game-duo-screen').classList.remove('active');
+    $('leave-screen').classList.add('active');
+}
 
 function rejoinGame() {
     // Réinitialiser l'état
