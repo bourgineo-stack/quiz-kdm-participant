@@ -1216,29 +1216,34 @@
         
 
 async function leaveGame() {
-            if (state.mode === 'duo') {
-                // Si on est deux, on propose de ne retirer que le dernier arrivé
-                const quitterTout = confirm("Voulez-vous arrêter la partie pour TOUT LE MONDE ?\n\nOK : Fin du quiz.\nANNULER : Seul le collègue invité s'en va.");
-                
-                if (quitterTout) {
-                    goToLeaveScreen();
-                } else {
-                    // SEUL LE JOUEUR 2 S'EN VA
-                    const p2 = state.players.pop(); // On enlève le collègue
-                    state.mode = 'solo';
-                    
-                    // Retour visuel immédiat vers l'écran solo
-                    $('game-duo-screen').classList.remove('active');
-                    $('game-screen').classList.add('active');
-                    $('game-pseudo').textContent = state.players[0].pseudo;
-                }
-            } else {
-                // En solo, confirmation standard
-                if (confirm("Voulez-vous vraiment quitter le quiz ?")) {
-                    goToLeaveScreen();
-                }
-            }
+    // ÉTAPE 1 : Confirmation de sécurité pour tout le monde
+    // Si on clique sur "Annuler" ici, on ferme la boîte et on continue de jouer.
+    if (!confirm("Voulez-vous vraiment quitter la partie en cours ?")) {
+        return; 
+    }
+
+    // ÉTAPE 2 : Gestion spécifique du mode Duo
+    if (state.mode === 'duo') {
+        // Ici, on sait déjà que l'utilisateur veut quitter. On lui demande qui.
+        const quitterTout = confirm("Qui doit quitter ?\n\nOK : Tout le monde (fin de partie).\nANNULER : Seulement le collègue invité.");
+        
+        if (quitterTout) {
+            goToLeaveScreen();
+        } else {
+            // SEUL LE JOUEUR 2 S'EN VA
+            const p2 = state.players.pop(); // On enlève le collègue
+            state.mode = 'solo';
+            
+            // Retour visuel immédiat vers l'écran solo
+            $('game-duo-screen').classList.remove('active');
+            $('game-screen').classList.add('active');
+            $('game-pseudo').textContent = state.players[0].pseudo;
         }
+    } else {
+        // En solo, comme on a déjà confirmé à l'étape 1, on quitte directement.
+        goToLeaveScreen();
+    }
+}
 
         function goToLeaveScreen() {
             $('game-screen').classList.remove('active');
