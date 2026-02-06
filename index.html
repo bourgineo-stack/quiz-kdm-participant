@@ -650,25 +650,24 @@
             text-align: center;
             font-weight: 600;
         }
-        /* Bouton quitter */
-.btn-leave {
-    position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    background: rgba(0,0,0,0.3);
-    border: 2px solid rgba(255,255,255,0.3);
-    color: white;
-    padding: 0.6rem 1rem;
-    border-radius: 20px;
-    font-family: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-    z-index: 100;
-}
-.btn-leave:hover {
-    background: var(--team-red);
-    border-color: var(--team-red);
-}
+      
+/* Bouton quitter */
+        .btn-leave {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        .btn-leave:hover {
+            background: var(--team-red);
+            border-color: white;
+        }
 
 /* Écran de fin */
 .leave-screen {
@@ -728,35 +727,28 @@
         
         <div class="container">
             <div class="card">
-                <h2 class="card-title">Bienvenue !</h2>
-                
+                <h2 class="card-title">Jouer en Solo</h2>
                 <div class="pseudo-display">
-                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.8rem;">Votre pseudo pour cette session :</p>
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">Votre pseudo :</p>
                     <div class="generated-pseudo" id="generated-pseudo">Vélo427</div>
-                    <button class="btn-refresh" id="btn-refresh" title="Changer de pseudo">
-                        🔄 Autre pseudo
-                    </button>
+                    <button class="btn-refresh" id="btn-refresh">🔄 Autre</button>
                 </div>
-
-                <button class="btn btn-primary" id="btn-join">
+                <button class="btn btn-primary" id="btn-join-solo">
                     🎲 Tirer mon équipe
                 </button>
             </div>
 
-            <div class="card" id="duo-option" style="display: none;">
+            <div class="card" id="duo-option">
                 <h2 class="card-title">Mode 2 joueurs</h2>
-                <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">
-                    Un collègue veut jouer avec vous sur ce téléphone ?
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
+                    Un collègue joue avec vous ? (Même équipe)
                 </p>
                 <div class="pseudo-display" style="margin-bottom: 1rem;">
-                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Pseudo joueur 2 :</p>
                     <div class="generated-pseudo small" id="generated-pseudo2">Tram892</div>
-                    <button class="btn-refresh" id="btn-refresh2" title="Changer de pseudo">
-                        🔄
-                    </button>
+                    <button class="btn-refresh" id="btn-refresh2">🔄</button>
                 </div>
-                <button class="btn btn-primary" id="btn-add-player2">
-                    ➕ Ajouter ce joueur
+                <button class="btn btn-primary" id="btn-add-player2" style="background: var(--team-blue);">
+                    👥 Lancer le Quiz à deux
                 </button>
             </div>
         </div>
@@ -797,7 +789,7 @@
                 <div class="team-dot" id="game-team-dot"></div>
                 <span id="game-pseudo">Pseudo</span>
             </div>
-            <button class="btn-leave" id="btn-leave">🚪 Quitter</button>
+            <button class="btn-leave" id="btn-leave"> Quitter</button>
             <div class="timer" id="game-timer">2:00</div>
         </header>
 
@@ -976,62 +968,30 @@
         }
 
         function setupEventListeners() {
-            // Générer les pseudos au chargement
-            const pseudo1 = generatePseudo();
-            let pseudo2 = generatePseudo();
-            // S'assurer que pseudo2 est différent
-            while (pseudo2 === pseudo1) {
-                pseudo2 = generatePseudo();
-            }
-            
-            $('generated-pseudo').textContent = pseudo1;
-            $('generated-pseudo2').textContent = pseudo2;
+            // Refresh Pseudos
+            $('btn-refresh').onclick = () => { $('generated-pseudo').textContent = generatePseudo(); };
+            $('btn-refresh2').onclick = () => { $('generated-pseudo2').textContent = generatePseudo(); };
 
-            // Bouton refresh pseudo 1
-            $('btn-refresh').addEventListener('click', () => {
-                let newPseudo = generatePseudo();
-                while (newPseudo === $('generated-pseudo2').textContent) {
-                    newPseudo = generatePseudo();
-                }
-                $('generated-pseudo').textContent = newPseudo;
-            });
-
-            // Bouton refresh pseudo 2
-            $('btn-refresh2').addEventListener('click', () => {
-                let newPseudo = generatePseudo();
-                while (newPseudo === $('generated-pseudo').textContent) {
-                    newPseudo = generatePseudo();
-                }
-                $('generated-pseudo2').textContent = newPseudo;
-            });
-
-            // Bouton rejoindre
-            $('btn-join').addEventListener('click', () => {
-                const pseudo = $('generated-pseudo').textContent;
-                state.players.push({ pseudo, team: null });
+            // Bouton Solo
+            $('btn-join-solo').onclick = () => {
+                state.mode = 'solo';
+                state.players = [{ pseudo: $('generated-pseudo').textContent, team: null }];
                 showLotteryScreen();
-            });
+            };
 
-            // Bouton démarrer après tirage
-            $('btn-start').addEventListener('click', () => {
-                registerPlayers();
-                showGameScreen();
-            });
-
-            // Bouton ajouter joueur 2
-            $('btn-add-player2').addEventListener('click', () => {
-                const pseudo2 = $('generated-pseudo2').textContent;
-                // Tirer l'équipe pour le joueur 2
-                const team2 = Math.random() > 0.5 ? 'blue' : 'red';
-                state.players.push({ pseudo: pseudo2, team: team2 });
+            // Bouton Duo (Même équipe forcée)
+            $('btn-add-player2').onclick = () => {
                 state.mode = 'duo';
-                showGameScreen();
-            });
-            // Bouton quitter
-$('btn-leave').addEventListener('click', leaveGame);
+                state.players = [
+                    { pseudo: $('generated-pseudo').textContent, team: null },
+                    { pseudo: $('generated-pseudo2').textContent, team: null }
+                ];
+                showLotteryScreen();
+            };
 
-// Bouton rejouer
-$('btn-rejoin').addEventListener('click', rejoinGame);
+            $('btn-start').onclick = () => { registerPlayers(); showGameScreen(); };
+            $('btn-leave').onclick = leaveGame;
+            $('btn-rejoin').onclick = rejoinGame;
         }
 
         // === ÉCRAN TIRAGE AU SORT ===
@@ -1234,25 +1194,27 @@ $('btn-rejoin').addEventListener('click', rejoinGame);
     }
 }
         async function leaveGame() {
-    const pseudo = state.players[0]?.pseudo;
-    if (!pseudo) return;
-    
-    try {
-        await fetch(CONFIG.sheetUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'leaveGame', pseudo })
-        });
-    } catch (error) {
-        console.error('Erreur leave:', error);
-    }
-    
-    // Afficher l'écran de fin
-    $('game-screen').classList.remove('active');
-    $('game-duo-screen').classList.remove('active');
-    $('leave-screen').classList.add('active');
-}
+            // Fenêtre de confirmation native
+            if (!confirm("Voulez-vous vraiment quitter le quiz et perdre votre progression ?")) {
+                return;
+            }
+
+            const pseudo = state.players[0]?.pseudo;
+            if (pseudo) {
+                try {
+                    fetch(CONFIG.sheetUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'leaveGame', pseudo })
+                    });
+                } catch (e) {}
+            }
+            
+            $('game-screen').classList.remove('active');
+            $('game-duo-screen').classList.remove('active');
+            $('leave-screen').classList.add('active');
+        }
 
 function rejoinGame() {
     // Réinitialiser l'état
