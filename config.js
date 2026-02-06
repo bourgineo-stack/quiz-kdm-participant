@@ -92,3 +92,12 @@ function formatTime(seconds) {
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
+/**
+ * Calcule le numéro de tour actuel
+ */
+function getCurrentTour(referenceTime) {
+    const now = Date.now();
+    const elapsed = (now - referenceTime) / 1000;
+    const cycleLength = SETTINGS.voteDuration + SETTINGS.explainDuration;
+    return Math.floor(elapsed / cycleLength);
+}
