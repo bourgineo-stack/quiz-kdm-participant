@@ -845,27 +845,33 @@
 
         // === INITIALISATION ===
         async function init() {
-            try {
-                // Récupérer l'heure de référence depuis Google Sheet
-                state.referenceTime = await fetchReferenceTime();
-                
-                // Masquer le chargement, afficher l'inscription
-                $('loading-screen').style.display = 'none';
-                $('register-screen').classList.add('active');
-                
-                // Event listeners
-                setupEventListeners();
-                
-            } catch (error) {
-                console.error('Erreur init:', error);
-                $('loading-screen').innerHTML = `
-                    <div class="error-message">
-                        Impossible de se connecter au quiz.<br>
-                        Vérifiez votre connexion et rechargez la page.
-                    </div>
-                `;
-            }
+    try {
+        // Charger la config depuis le Sheet
+        const loaded = await loadConfigFromSheet();
+        if (!loaded || QUESTIONS.length === 0) {
+            throw new Error('Impossible de charger les questions');
         }
+        
+        // Récupérer l'heure de référence
+        state.referenceTime = SETTINGS.startTime || Date.now();
+        
+        // Masquer le chargement, afficher l'inscription
+        $('loading-screen').style.display = 'none';
+        $('register-screen').classList.add('active');
+        
+        // Event listeners
+        setupEventListeners();
+        
+    } catch (error) {
+        console.error('Erreur init:', error);
+        $('loading-screen').innerHTML = `
+            <div class="error-message">
+                Impossible de se connecter au quiz.<br>
+                Vérifiez votre connexion et rechargez la page.
+            </div>
+        `;
+    }
+}
 
         async function fetchReferenceTime() {
             try {
