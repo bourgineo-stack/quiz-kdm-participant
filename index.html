@@ -1291,36 +1291,36 @@ function rejoinGame() {
         }
 
         function updatePhase(quizState) {
-            const q = quizState.currentQuestion;
-            
-            if (state.mode === 'duo') {
-                const phaseBar = $('phase-bar-duo');
-                phaseBar.className = `phase-bar ${quizState.phase}`;
-                phaseBar.textContent = quizState.phase === 'vote' 
-                    ? '⏱️ Phase de vote' 
-                    : '💡 Explication';
-                
-                // Révéler les réponses en phase explain
-                if (quizState.phase === 'explain') {
-                    revealAnswers('p1-options', q.correct);
-                    revealAnswers('p2-options', q.correct);
-                }
-            } else {
-                const phaseBar = $('phase-bar');
-                phaseBar.className = `phase-bar ${quizState.phase}`;
-                phaseBar.textContent = quizState.phase === 'vote' 
-                    ? '⏱️ Phase de vote' 
-                    : '💡 Explication';
-                
-                // Basculer entre vote et explain
-                $('vote-phase').style.display = quizState.phase === 'vote' ? 'block' : 'none';
-                $('explain-phase').style.display = quizState.phase === 'explain' ? 'block' : 'none';
-                
-                if (quizState.phase === 'explain') {
-                    showExplanation(quizState);
-                }
-            }
+    const q = quizState.currentQuestion;
+    const isVote = quizState.phase === 'vote';
+    const phaseLabel = isVote ? '⏱️ Phase de vote' : '💡 Explication';
+
+    if (state.mode === 'duo') {
+        const phaseBar = $('phase-bar-duo');
+        phaseBar.className = `phase-bar ${quizState.phase}`;
+        phaseBar.textContent = phaseLabel; // En duo, pas de bouton dedans, on peut laisser
+        
+        if (quizState.phase === 'explain') {
+            revealAnswers('p1-options', q.correct);
+            revealAnswers('p2-options', q.correct);
         }
+    } else {
+        const phaseBar = $('phase-bar');
+        phaseBar.className = `phase-bar ${quizState.phase}`;
+        
+        // CORRECTION ICI : On cible un span précis ou on change juste le texte 
+        // sans toucher au bouton si vous l'aviez laissé dedans.
+        // Mais avec le bouton dans le header (conseillé), c'est plus simple :
+        phaseBar.textContent = phaseLabel; 
+
+        $('vote-phase').style.display = isVote ? 'block' : 'none';
+        $('explain-phase').style.display = isVote ? 'none' : 'block';
+        
+        if (!isVote) {
+            showExplanation(quizState);
+        }
+    }
+}
 
         function revealAnswers(containerId, correctIndex) {
             const container = $(containerId);
