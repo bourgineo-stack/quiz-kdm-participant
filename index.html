@@ -446,11 +446,15 @@
         // === INIT ===
         async function init() {
             try {
+                console.log('Chargement config depuis:', CONFIG.sheetUrl);
                 const loaded = await loadConfigFromSheet();
+                console.log('Config chargée:', loaded, 'Questions:', QUESTIONS.length, 'Settings:', SETTINGS);
+                
                 if (!loaded || QUESTIONS.length === 0) {
-                    throw new Error('Impossible de charger les questions');
+                    throw new Error('Config non chargée ou 0 questions');
                 }
 
+                // Utiliser startTime du Sheet, mais fallback sur Date.now() si absent ou invalide
                 state.referenceTime = SETTINGS.startTime || Date.now();
                 $('generated-pseudo').textContent = generatePseudo();
                 $('loading-screen').style.display = 'none';
@@ -461,7 +465,8 @@
                 $('loading-screen').innerHTML = `
                     <div class="error-message">
                         Impossible de se connecter au quiz.<br>
-                        Vérifiez votre connexion et rechargez la page.
+                        ${error.message}<br>
+                        <small style="opacity:0.7">Vérifiez votre connexion et rechargez la page.</small>
                     </div>
                 `;
             }
