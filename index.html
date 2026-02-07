@@ -454,37 +454,30 @@
             throw new Error('Config non chargée ou 0 questions');
         }
 
-        // IMPORTANT : Utiliser EXACTEMENT la même logique que l'animateur
-        // Attendre un peu pour être sûr que le startTime est bien écrit
-        await new Promise(r => setTimeout(r, 1000));
-        
-        // Recharger la config pour avoir le startTime frais
-        await loadConfigFromSheet();
-        
-        // Vérifier que le startTime existe et est valide
+        // IMPORTANT: Logique unifiée pour tous les modes
         if (!SETTINGS.startTime) {
-            console.warn('Pas de startTime, utilisation de Date.now()');
-            state.referenceTime = Date.now();
-        } else {
-            // Mode 'loop' : ajuster le startTime au début du cycle
-            if (SETTINGS.mode === 'loop') {
-                const cycleLength = (SETTINGS.voteDuration + SETTINGS.explainDuration) * QUESTIONS.length;
-                const now = Date.now();
-                const cycleMs = cycleLength * 1000;
-                const elapsed = now - SETTINGS.startTime;
-                const cyclesCompleted = Math.floor(elapsed / cycleMs);
-                state.referenceTime = SETTINGS.startTime + (cyclesCompleted * cycleMs);
-                console.log('Mode loop - referenceTime ajusté:', state.referenceTime, 
-                          'cyclesCompleted:', cyclesCompleted);
-            } else {
-                // Mode 'session' : utiliser le startTime directement
-                state.referenceTime = SETTINGS.startTime;
-            }
+            console.warn('Pas de startTime dans le Sheet, quiz non démarré');
+            $('loading-screen').innerHTML = `
+                <div style="text-align: center; color: white; padding: 2rem;">
+                    <div style="font-size: 3rem;">⏳</div>
+                    <h2>En attente du démarrage</h2>
+                    <p>L'animateur n'a pas encore démarré le quiz.</p>
+                    <p>Rechargez la page dans quelques instants.</p>
+                </div>
+            `;
+            return;
         }
+
+        // Pour TOUS les modes, utiliser le startTime du Sheet
+        state.referenceTime = SETTINGS.startTime;
         
-        console.log('ReferenceTime final:', state.referenceTime, 
-                   'startTime from sheet:', SETTINGS.startTime,
-                   'mode:', SETTINGS.mode);
+        console.log('Synchronisation avec l\'animateur:', {
+            mode: SETTINGS.mode,
+            referenceTime: state.referenceTime,
+            currentTime: Date.now(),
+            diff: Date.now() - state.referenceTime,
+            startTimeDate: new Date(state.referenceTime).toISOString()
+        });
         
         $('generated-pseudo').textContent = generatePseudo();
         $('loading-screen').style.display = 'none';
