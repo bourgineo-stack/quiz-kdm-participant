@@ -713,19 +713,26 @@
                 const quitterTout = confirm("Qui doit quitter ?\n\nOK : Tout le monde.\nANNULER : Seulement le collègue invité.");
 
                 if (quitterTout) {
+                    // Notifier le backend pour tous les joueurs
+                    state.players.forEach(p => {
+                        sendToSheet({ action: 'leaveGame', pseudo: p.pseudo });
+                    });
                     goToLeaveScreen();
                 } else {
-                    state.players.pop();
+                    // Seul le joueur 2 part
+                    const p2 = state.players.pop();
+                    sendToSheet({ action: 'leaveGame', pseudo: p2.pseudo });
                     state.mode = 'solo';
                     $('game-duo-screen').classList.remove('active');
                     $('game-screen').classList.add('active');
                     $('game-pseudo').textContent = state.players[0].pseudo;
                     $('game-team-dot').className = `team-dot ${state.players[0].team}`;
-                    // Reset submitted pour le joueur restant
                     delete state.submitted[1];
                     delete state.currentAnswer[1];
                 }
             } else {
+                // Notifier le backend
+                sendToSheet({ action: 'leaveGame', pseudo: state.players[0].pseudo });
                 goToLeaveScreen();
             }
         }
