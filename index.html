@@ -444,67 +444,62 @@
         }
 
         // === INIT ===
-        async function startQuiz() {
-    if (!state.mode) return;
-
-    $('btn-start').disabled = true;
-    $('btn-start').textContent = '⏳ Démarrage...';
-
-    const startedAt = Date.now();
-
+        async function init() {
     try {
-        // Envoyer la commande startSession
-        const startResponse = await fetch(CONFIG.sheetUrl, {
-            method: 'POST', 
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'startSession', mode: state.mode })
-        });
-
-        console.log('Commande startSession envoyée');
+        console.log('Chargement config depuis:', CONFIG.sheetUrl);
+        const loaded = await loadConfigFromSheet();
+        console.log('Config chargée:', loaded, 'Questions:', QUESTIONS.length, 'Settings:', SETTINGS);
         
-        // Attendre plus longtemps pour être sûr que le Sheet a écrit
-        await new Promise(r => setTimeout(r, 3000));
-        
-        // Recharger la config pour avoir le nouveau startTime
-        await loadConfigFromSheet();
-        
-        console.log('Config rechargée, startTime:', SETTINGS.startTime, 
-                   'mode:', SETTINGS.mode);
-
-        // Mode 'loop' : calcul spécial
-        if (state.mode === 'loop') {
-            const cycleLength = (SETTINGS.voteDuration + SETTINGS.explainDuration) * QUESTIONS.length;
-            const cycleMs = cycleLength * 1000;
-            const now = Date.now();
-            // Aligner sur le début du cycle le plus proche
-            const cyclesSinceEpoch = Math.floor(now / cycleMs);
-            state.referenceTime = cyclesSinceEpoch * cycleMs;
-            console.log('Mode loop - referenceTime aligné:', state.referenceTime);
-        } 
-        // Mode 'session' : vérifier le startTime
-        else if (SETTINGS.startTime && Math.abs(startedAt - SETTINGS.startTime) < 30000) {
-            state.referenceTime = SETTINGS.startTime;
-            console.log('Mode session - startTime utilisé:', state.referenceTime);
-        } else {
-            console.warn('startTime du Sheet semble ancien/invalide, utilisation de Date.now()');
-            state.referenceTime = startedAt;
+        if (!loaded || QUESTIONS.length === 0) {
+            throw new Error('Config non chargée ou 0 questions');
         }
 
-    } catch (e) {
-        console.error('Erreur démarrage:', e);
-        state.referenceTime = startedAt;
+        // IMPORTANT : Utiliser EXACTEMENT la même logique que l'animateur
+        // Attendre un peu pour être sûr que le startTime est bien écrit
+        await new Promise(r => setTimeout(r, 1000));
+        
+        // Recharger la config pour avoir le startTime frais
+        await loadConfigFromSheet();
+        
+        // Vérifier que le startTime existe et est valide
+        if (!SETTINGS.startTime) {
+            console.warn('Pas de startTime, utilisation de Date.now()');
+            state.referenceTime = Date.now();
+        } else {
+            // Mode 'loop' : ajuster le startTime au début du cycle
+            if (SETTINGS.mode === 'loop') {
+                const cycleLength = (SETTINGS.voteDuration + SETTINGS.explainDuration) * QUESTIONS.length;
+                const now = Date.now();
+                const cycleMs = cycleLength * 1000;
+                const elapsed = now - SETTINGS.startTime;
+                const cyclesCompleted = Math.floor(elapsed / cycleMs);
+                state.referenceTime = SETTINGS.startTime + (cyclesCompleted * cycleMs);
+                console.log('Mode loop - referenceTime ajusté:', state.referenceTime, 
+                          'cyclesCompleted:', cyclesCompleted);
+            } else {
+                // Mode 'session' : utiliser le startTime directement
+                state.referenceTime = SETTINGS.startTime;
+            }
+        }
+        
+        console.log('ReferenceTime final:', state.referenceTime, 
+                   'startTime from sheet:', SETTINGS.startTime,
+                   'mode:', SETTINGS.mode);
+        
+        $('generated-pseudo').textContent = generatePseudo();
+        $('loading-screen').style.display = 'none';
+        $('register-screen').classList.add('active');
+        setupEventListeners();
+    } catch (error) {
+        console.error('Erreur init:', error);
+        $('loading-screen').innerHTML = `
+            <div class="error-message">
+                Impossible de se connecter au quiz.<br>
+                ${error.message}<br>
+                <small style="opacity:0.7">Vérifiez votre connexion et rechargez la page.</small>
+            </div>
+        `;
     }
-
-    console.log('Session démarrée avec referenceTime:', state.referenceTime,
-               'Heure actuelle:', Date.now(),
-               'Différence:', Date.now() - state.referenceTime);
-
-    $('mode-badge').textContent = state.mode === 'session' ? 'Mode Atelier' : 'Mode Va-et-vient';
-    $('start-screen').classList.add('hidden');
-    $('main-screen').classList.add('active');
-
-    startLoop();
 }
 
         function setupEventListeners() {
