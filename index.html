@@ -568,22 +568,25 @@
 
         // === LOTTERY ===
         function showLotteryScreen() {
-            $('register-screen').classList.remove('active');
-            $('lottery-screen').classList.add('active');
+    $('register-screen').classList.remove('active');
+    $('lottery-screen').classList.add('active');
 
-            const team = Math.random() > 0.5 ? 'blue' : 'red';
-            state.players[0].team = team;
+    // Animation temporaire (la vraie équipe sera assignée par le serveur)
+    const tempTeam = Math.random() > 0.5 ? 'blue' : 'red';
 
-            const baseRotation = 1800;
-            const teamOffset = team === 'blue' ? 45 : 225;
-            const finalRotation = baseRotation + teamOffset + (Math.random() * 60 - 30);
-            $('wheel').style.setProperty('--final-rotation', `${finalRotation}deg`);
+    const baseRotation = 1800;
+    const teamOffset = tempTeam === 'blue' ? 45 : 225;
+    const finalRotation = baseRotation + teamOffset + (Math.random() * 60 - 30);
+    $('wheel').style.setProperty('--final-rotation', `${finalRotation}deg`);
 
-            setTimeout(() => {
-                $('lottery-anim').style.display = 'none';
-                showTeamResult(team);
-            }, 3500);
-        }
+    setTimeout(async () => {
+        // Inscrire et récupérer la VRAIE équipe du serveur
+        await registerPlayers();
+        
+        $('lottery-anim').style.display = 'none';
+        showTeamResult(state.players[0].team);
+    }, 3500);
+}
 
         function showTeamResult(team) {
             const result = $('team-result');
@@ -617,11 +620,39 @@
         }
 
         async function registerPlayers() {
-            for (const player of state.players) {
-                console.log('Inscription:', player);
-                await sendToSheet({ action: 'register', pseudo: player.pseudo, team: player.team });
-            }
+    for (const player of state.players) {
+        console.log('Inscription:', player.pseudo);
+        
+        // Envoyer sans team pour laisser le serveur choisir
+        const response = await fetch(CONFIG.sheetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'register', 
+                pseudo: player.pseudo, 
+                team: null  // Le serveur assignera l'équipe
+            })
+        });
+        
+        // IMPORTANT : avec no-cors on ne peut pas lire la réponse
+        // Donc on doit faire une requête GET pour récupérer l'équipe assignée
+        await new Promise(r => setTimeout(r, 1500)); // Laisser le temps au serveur
+        
+        // Récupérer les participants pour trouver notre équipe
+        const checkResponse = await fetch(`${CONFIG.sheetUrl}?action=getParticipants`);
+        const participantsData = await checkResponse.json();
+        
+        const foundPlayer = participantsData.participants.find(p => p.pseudo === player.pseudo);
+        if (foundPlayer) {
+            player.team = foundPlayer.team;
+            console.log('✅ Équipe assignée par serveur:', foundPlayer.team);
+        } else {
+            console.warn('⚠️ Joueur non trouvé, utilisation équipe par défaut');
+            player.team = 'blue'; // Fallback
         }
+    }
+}
 
         function startGameLoop() {
             updateGame();
