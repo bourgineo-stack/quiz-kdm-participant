@@ -479,10 +479,19 @@
             startTimeDate: new Date(state.referenceTime).toISOString()
         });
         
-        $('generated-pseudo').textContent = generatePseudo();
-        $('loading-screen').style.display = 'none';
-        $('register-screen').classList.add('active');
-        setupEventListeners();
+        const pseudo = generatePseudo();
+$('generated-pseudo').textContent = pseudo;
+
+// PRÉ-INSCRIPTION en arrière-plan (inactive)
+state.mode = 'solo';
+state.players = [{ pseudo: pseudo, team: null }];
+
+console.log('🔄 Pré-inscription en cours...');
+preRegisterPlayer();
+
+$('loading-screen').style.display = 'none';
+$('register-screen').classList.add('active');
+setupEventListeners();
     } catch (error) {
         console.error('Erreur init:', error);
         $('loading-screen').innerHTML = `
@@ -499,10 +508,10 @@
             $('btn-refresh').onclick = () => { $('generated-pseudo').textContent = generatePseudo(); };
 
             $('btn-join-solo').onclick = () => {
-                state.mode = 'solo';
-                state.players = [{ pseudo: $('generated-pseudo').textContent, team: null }];
-                showLotteryScreen();
-            };
+    // L'équipe est déjà connue grâce à preRegisterPlayer()
+    console.log('🎲 Lancement animation avec équipe:', state.players[0].team);
+    showLotteryScreen();
+};
 
             $('btn-invite-midgame').onclick = async () => {
                 if (state.mode === 'duo') return;
@@ -538,7 +547,13 @@
                 onQuestionChange(getQuizState(state.referenceTime));
             };
 
-            $('btn-start').onclick = () => { registerPlayers(); showGameScreen(); };
+            $('btn-start').onclick = async () => { 
+    // Activer le joueur
+    await activatePlayer(); 
+    
+    // Lancer le jeu
+    showGameScreen(); 
+};
             $('btn-leave').onclick = leaveGame;
             $('btn-leave-duo').onclick = leaveGame;
             $('btn-rejoin').onclick = rejoinGame;
@@ -632,38 +647,66 @@
             startGameLoop();
         }
 
-        async function registerPlayers() {
-    for (const player of state.players) {
-        console.log('Inscription:', player.pseudo);
-        
-        // Envoyer sans team pour laisser le serveur choisir
-        const response = await fetch(CONFIG.sheetUrl, {
+        // PRÉ-INSCRIPTION (active: false)
+async function preRegisterPlayer() {
+    const player = state.players[0];
+    
+    console.log('📝 Pré-inscription:', player.pseudo, 'active: false');
+    
+    try {
+        // Envoyer avec active = false
+        await fetch(CONFIG.sheetUrl, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 action: 'register', 
                 pseudo: player.pseudo, 
-                team: null  // Le serveur assignera l'équipe
+                team: null,
+                active: false  // ← NE PAS ACTIVER
             })
         });
         
-        // IMPORTANT : avec no-cors on ne peut pas lire la réponse
-        // Donc on doit faire une requête GET pour récupérer l'équipe assignée
-        await new Promise(r => setTimeout(r, 800)); // Laisser le temps au serveur
+        // Attendre un peu puis récupérer l'équipe assignée
+        await new Promise(r => setTimeout(r, 800));
         
-        // Récupérer les participants pour trouver notre équipe
-        const checkResponse = await fetch(`${CONFIG.sheetUrl}?action=getParticipants`);
-        const participantsData = await checkResponse.json();
+        const response = await fetch(`${CONFIG.sheetUrl}?action=getParticipants`);
+        const participantsData = await response.json();
         
         const foundPlayer = participantsData.participants.find(p => p.pseudo === player.pseudo);
         if (foundPlayer) {
             player.team = foundPlayer.team;
-            console.log('✅ Équipe assignée par serveur:', foundPlayer.team);
+            console.log('✅ Équipe pré-assignée:', foundPlayer.team, '(inactif)');
         } else {
-            console.warn('⚠️ Joueur non trouvé, utilisation équipe par défaut');
-            player.team = 'blue'; // Fallback
+            console.warn('⚠️ Joueur non trouvé, fallback blue');
+            player.team = 'blue';
         }
+    } catch (error) {
+        console.error('❌ Erreur pré-inscription:', error);
+        player.team = 'blue';  // Fallback
+    }
+}
+
+        // ACTIVER le participant (passer active: false → true)
+async function activatePlayer() {
+    const player = state.players[0];
+    
+    console.log('✅ Activation:', player.pseudo);
+    
+    try {
+        await fetch(CONFIG.sheetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'activate', 
+                pseudo: player.pseudo
+            })
+        });
+        
+        console.log('✅ Joueur activé');
+    } catch (error) {
+        console.error('❌ Erreur activation:', error);
     }
 }
 
