@@ -586,34 +586,20 @@ setupEventListeners();
     $('register-screen').classList.remove('active');
     $('lottery-screen').classList.add('active');
 
-    const tempTeam = Math.random() > 0.5 ? 'blue' : 'red';
+    // Utiliser la VRAIE équipe déjà pré-assignée
+    const assignedTeam = state.players[0].team || 'blue';
+    console.log('🎯 Animation pour équipe:', assignedTeam);
+
     const baseRotation = 1800;
-    const teamOffset = tempTeam === 'blue' ? 45 : 225;
+    const teamOffset = assignedTeam === 'blue' ? 45 : 225;
     const finalRotation = baseRotation + teamOffset + (Math.random() * 60 - 30);
     $('wheel').style.setProperty('--final-rotation', `${finalRotation}deg`);
 
-    let inscriptionDone = false;
-    let animationDone = false;
-
-    registerPlayers().then(() => {
-        console.log('✅ Inscription OK, équipe:', state.players[0].team);
-        inscriptionDone = true;
-        checkBothDone();
-    });
-
+    // Afficher le résultat après l'animation
     setTimeout(() => {
-        console.log('✅ Animation OK');
-        animationDone = true;
-        checkBothDone();
+        $('lottery-anim').style.display = 'none';
+        showTeamResult(assignedTeam);
     }, 3500);
-
-    function checkBothDone() {
-        if (inscriptionDone && animationDone) {
-            console.log('✅ Affichage équipe:', state.players[0].team);
-            $('lottery-anim').style.display = 'none';
-            showTeamResult(state.players[0].team);
-        }
-    }
 }
 
         function showTeamResult(team) {
