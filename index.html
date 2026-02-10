@@ -273,6 +273,83 @@
             padding: 1rem 2rem; border-radius: 12px; font-family: inherit;
             font-size: 1rem; font-weight: 700; cursor: pointer;
         }
+        /* Écran d'attente synchronisation */
+.waiting-screen {
+    display: none;
+    min-height: 100vh;
+    background: var(--divia-purple);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    color: white;
+}
+
+.waiting-screen.active {
+    display: flex;
+}
+
+.waiting-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+.waiting-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.waiting-message {
+    font-size: 1.2rem;
+    opacity: 0.8;
+    margin-bottom: 2rem;
+    max-width: 500px;
+}
+
+.waiting-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: var(--divia-magenta);
+    border-radius: 50%;
+    animation: spinner 1s linear infinite;
+    margin-bottom: 1.5rem;
+}
+
+.waiting-ready {
+    background: rgba(0,0,0,0.3);
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.waiting-pseudo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--divia-magenta);
+    margin-bottom: 0.5rem;
+}
+
+.waiting-team {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.waiting-team.blue {
+    color: var(--team-blue);
+}
+
+.waiting-team.red {
+    color: var(--team-red);
+}
     </style>
 </head>
 <body>
@@ -415,7 +492,20 @@
         <p class="end-game-message" id="end-game-message">Merci d'avoir participé !</p>
         <button class="btn-rejoin" id="btn-replay">🔄 Rejouer</button>
     </div>
-
+<!-- Écran d'attente synchronisation -->
+<div class="waiting-screen" id="waiting-screen">
+    <div class="waiting-icon">⏳</div>
+    <h2 class="waiting-title">En attente du démarrage...</h2>
+    <p class="waiting-message">
+        L'animateur va bientôt lancer le quiz.<br>
+        Restez sur cette page, le quiz démarrera automatiquement !
+    </p>
+    <div class="waiting-spinner"></div>
+    <div class="waiting-ready">
+        <div class="waiting-pseudo" id="waiting-pseudo">Vélo427</div>
+        <div class="waiting-team" id="waiting-team">🚌 Équipe Bleue</div>
+    </div>
+</div>
     <script src="config.js"></script>
     <script>
         // === ÉTAT ===
@@ -454,7 +544,52 @@
             throw new Error('Config non chargée ou 0 questions');
         }
 
-        // IMPORTANT: Logique unifiée pour tous les modes
+        // Générer le pseudo
+        const pseudo = generatePseudo();
+        $('generated-pseudo').textContent = pseudo;
+
+        // MODE SESSION : Vérifier si le quiz a déjà démarré
+        if (SETTINGS.mode === 'session') {
+            if (!SETTINGS.startTime) {
+                // Mode session SANS startTime → Écran d'attente
+                console.log('⏳ Mode session détecté, mais pas encore démarré');
+                
+                // Pré-inscription
+                state.mode = 'solo';
+                state.players = [{ pseudo: pseudo, team: null }];
+                await preRegisterPlayer();
+                
+                // Afficher l'écran d'attente
+                $('loading-screen').style.display = 'none';
+                $('waiting-screen').classList.add('active');
+                $('waiting-pseudo').textContent = state.players[0].pseudo;
+                
+                const teamLabel = state.players[0].team === 'blue' ? '🚌 Équipe Bleue' : '🚋 Équipe Rouge';
+                const teamClass = state.players[0].team;
+                $('waiting-team').textContent = teamLabel;
+                $('waiting-team').className = `waiting-team ${teamClass}`;
+                
+                // Polling toutes les 2 secondes pour détecter le startTime
+                const checkInterval = setInterval(async () => {
+                    await loadConfigFromSheet();
+                    
+                    if (SETTINGS.startTime) {
+                        console.log('🚀 StartTime détecté, lancement du quiz !');
+                        clearInterval(checkInterval);
+                        
+                        state.referenceTime = SETTINGS.startTime;
+                        await activatePlayer();
+                        
+                        $('waiting-screen').classList.remove('active');
+                        showLotteryScreen();
+                    }
+                }, 2000);
+                
+                return;
+            }
+        }
+
+        // MODE LOOP ou MODE SESSION avec startTime déjà existant
         if (!SETTINGS.startTime) {
             console.warn('Pas de startTime dans le Sheet, quiz non démarré');
             $('loading-screen').innerHTML = `
@@ -468,7 +603,7 @@
             return;
         }
 
-        // Pour TOUS les modes, utiliser le startTime du Sheet
+        // Quiz déjà en cours
         state.referenceTime = SETTINGS.startTime;
         
         console.log('Synchronisation avec l\'animateur:', {
@@ -480,18 +615,19 @@
         });
         
         const pseudo = generatePseudo();
-$('generated-pseudo').textContent = pseudo;
+        $('generated-pseudo').textContent = pseudo;
 
-// PRÉ-INSCRIPTION en arrière-plan (inactive)
-state.mode = 'solo';
-state.players = [{ pseudo: pseudo, team: null }];
+        // Pré-inscription
+        state.mode = 'solo';
+        state.players = [{ pseudo: pseudo, team: null }];
+        
+        console.log('🔄 Pré-inscription en cours...');
+        await preRegisterPlayer();
 
-console.log('🔄 Pré-inscription en cours...');
-preRegisterPlayer();
-
-$('loading-screen').style.display = 'none';
-$('register-screen').classList.add('active');
-setupEventListeners();
+        $('loading-screen').style.display = 'none';
+        $('register-screen').classList.add('active');
+        setupEventListeners();
+        
     } catch (error) {
         console.error('Erreur init:', error);
         $('loading-screen').innerHTML = `
@@ -584,6 +720,7 @@ setupEventListeners();
         // === LOTTERY ===
         function showLotteryScreen() {
     $('register-screen').classList.remove('active');
+    $('waiting-screen').classList.remove('active'); // ← NOUVEAU
     $('lottery-screen').classList.add('active');
 
     // Utiliser la VRAIE équipe déjà pré-assignée
