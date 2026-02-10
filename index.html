@@ -544,7 +544,7 @@
             throw new Error('Config non chargée ou 0 questions');
         }
 
-        // Générer le pseudo
+        // ✅ Générer le pseudo UNE SEULE FOIS
         const pseudo = generatePseudo();
         $('generated-pseudo').textContent = pseudo;
 
@@ -603,7 +603,7 @@
             return;
         }
 
-        // Quiz déjà en cours
+        // Quiz déjà en cours - utiliser le pseudo déjà généré
         state.referenceTime = SETTINGS.startTime;
         
         console.log('Synchronisation avec l\'animateur:', {
@@ -613,11 +613,8 @@
             diff: Date.now() - state.referenceTime,
             startTimeDate: new Date(state.referenceTime).toISOString()
         });
-        
-        const pseudo = generatePseudo();
-        $('generated-pseudo').textContent = pseudo;
 
-        // Pré-inscription
+        // Pré-inscription avec le pseudo déjà généré
         state.mode = 'solo';
         state.players = [{ pseudo: pseudo, team: null }];
         
@@ -639,7 +636,6 @@
         `;
     }
 }
-
         function setupEventListeners() {
             $('btn-refresh').onclick = () => { $('generated-pseudo').textContent = generatePseudo(); };
 
