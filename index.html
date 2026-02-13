@@ -559,15 +559,17 @@ async function init() {
             console.warn('Pas de startTime, affichage écran d\'attente');
             showWaitingScreen();
             // Polling toutes les 3 secondes pour vérifier si le quiz a démarré
-            setInterval(async () => {
-                await loadConfigFromSheet();
-                if (SETTINGS.startTime) {
-                    console.log('✅ Quiz démarré détecté !');
-                    state.referenceTime = SETTINGS.startTime;
-                    await activatePlayer();
-                    hideWaitingScreen();
-                }
-            }, 3000);
+            // Polling toutes les 3 secondes pour vérifier si le quiz a démarré
+setInterval(async () => {
+    await loadConfigFromSheet();
+    if (SETTINGS.startTime) {
+        console.log('✅ Quiz démarré détecté !');
+        state.referenceTime = SETTINGS.startTime;
+        // ✅ Plus besoin d'activer, juste lancer le jeu
+        hideWaitingScreen();
+    }
+}, 3000);
+return;
             return;
         }
 
@@ -581,9 +583,6 @@ async function init() {
             diff: Date.now() - state.referenceTime,
             startTimeDate: new Date(state.referenceTime).toISOString()
         });
-
-        // Activer le joueur immédiatement (mode loop ou session déjà lancé)
-        await activatePlayer();
 
         $('loading-screen').style.display = 'none';
         $('register-screen').classList.add('active');
