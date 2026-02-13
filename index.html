@@ -617,8 +617,8 @@ function showWaitingScreen() {
 
 function hideWaitingScreen() {
     $('waiting-screen').classList.remove('active');
-    $('register-screen').classList.add('active');
-    setupEventListeners();
+    // ✅ Ne PAS passer par register-screen, aller direct au jeu
+    showGameScreen();  // ← Changé
 }
         function setupEventListeners() {
             $('btn-refresh').onclick = () => { $('generated-pseudo').textContent = generatePseudo(); };
@@ -696,11 +696,18 @@ function hideWaitingScreen() {
 
         // === LOTTERY ===
         function showLotteryScreen() {
+    // MODE SESSION : Si on vient de l'écran d'attente, skip le tirage
+    if ($('waiting-screen').classList.contains('active')) {
+        console.log('🎯 Mode session : skip lottery, équipe déjà connue');
+        $('waiting-screen').classList.remove('active');
+        showGameScreen();  // ← Direct au jeu
+        return;
+    }
+    
+    // MODE LOOP ou premier tirage : afficher l'animation
     $('register-screen').classList.remove('active');
-    $('waiting-screen').classList.remove('active'); // ← NOUVEAU
     $('lottery-screen').classList.add('active');
 
-    // Utiliser la VRAIE équipe déjà pré-assignée
     const assignedTeam = state.players[0].team || 'blue';
     console.log('🎯 Animation pour équipe:', assignedTeam);
 
@@ -709,7 +716,6 @@ function hideWaitingScreen() {
     const finalRotation = baseRotation + teamOffset + (Math.random() * 60 - 30);
     $('wheel').style.setProperty('--final-rotation', `${finalRotation}deg`);
 
-    // Afficher le résultat après l'animation
     setTimeout(() => {
         $('lottery-anim').style.display = 'none';
         showTeamResult(assignedTeam);
