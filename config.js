@@ -12,6 +12,7 @@ let SETTINGS = {
     explainDuration: 60,
     mode: 'session',
     startTime: null
+    firstQuestionDelay: 120  // ← NOUVEAU : 2 minutes pour les consignes
 };
 
 /**
@@ -31,6 +32,7 @@ async function loadConfigFromSheet() {
         SETTINGS.explainDuration = parseInt(data.settings.explainDuration) || 60;
         SETTINGS.mode = data.settings.mode || 'session';
         SETTINGS.startTime = data.settings.startTime ? parseInt(data.settings.startTime) : null;
+        SETTINGS.firstQuestionDelay = parseInt(data.settings.firstQuestionDelay) || 0;  // ← NOUVEAU
 
         QUESTIONS = data.questions || [];
 
@@ -53,10 +55,15 @@ function getQuizState(referenceTime) {
     const now = Date.now();
     const elapsed = (now - referenceTime) / 1000;
 
+    // ✅ NOUVEAU : Ajouter le délai première question (mode session uniquement)
+    let adjustedElapsed = elapsed;
+    if (SETTINGS.mode === 'session' && SETTINGS.firstQuestionDelay > 0) {
+        adjustedElapsed = Math.max(0, elapsed - SETTINGS.firstQuestionDelay);
+    }
+
     const cycleLength = SETTINGS.voteDuration + SETTINGS.explainDuration;
     const totalCycleLength = cycleLength * QUESTIONS.length;
 
-    // Protection : si elapsed est négatif ou si QUESTIONS est vide
     if (QUESTIONS.length === 0 || totalCycleLength === 0) {
         return {
             questionIndex: 0, phase: 'vote', timeRemaining: 0,
@@ -64,9 +71,8 @@ function getQuizState(referenceTime) {
         };
     }
 
-    // Détection fin de quiz (mode session uniquement)
-    // Ne s'applique que si elapsed est positif et raisonnable (pas un ancien startTime)
-    if (SETTINGS.mode === 'session' && elapsed > 0 && elapsed >= totalCycleLength) {
+    // Détection fin de quiz
+    if (SETTINGS.mode === 'session' && adjustedElapsed > 0 && adjustedElapsed >= totalCycleLength) {
         return {
             questionIndex: QUESTIONS.length - 1,
             phase: 'finished',
@@ -79,7 +85,7 @@ function getQuizState(referenceTime) {
     }
 
     // Position dans le cycle (avec boucle pour mode loop)
-    const positionInTotal = ((elapsed % totalCycleLength) + totalCycleLength) % totalCycleLength;
+    const positionInTotal = ((adjustedElapsed % totalCycleLength) + totalCycleLength) % totalCycleLength;
     const questionIndex = Math.floor(positionInTotal / cycleLength);
     const positionInQuestion = positionInTotal % cycleLength;
 
@@ -93,7 +99,6 @@ function getQuizState(referenceTime) {
         timeRemaining = cycleLength - positionInQuestion;
     }
 
-    // Calcul de la position dans la phase explain (0 à 1)
     let explainProgress = 0;
     if (phase === 'explain') {
         const timeInExplain = positionInQuestion - SETTINGS.voteDuration;
@@ -107,7 +112,7 @@ function getQuizState(referenceTime) {
         totalElapsed: Math.floor(elapsed),
         currentQuestion: QUESTIONS[questionIndex] || null,
         finished: false,
-        explainProgress // 0 à 1, utile pour trigger le calcul des scores à 0.5
+        explainProgress
     };
 }
 
