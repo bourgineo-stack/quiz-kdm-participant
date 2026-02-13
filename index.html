@@ -534,45 +534,92 @@
         }
 
         // === INIT ===
-        // MODE SESSION : Vérifier si le quiz a déjà démarré
-// MODE LOOP ou MODE SESSION avec startTime déjà existant
-if (!SETTINGS.startTime) {
-    console.warn('Pas de startTime dans le Sheet, quiz non démarré');
-    $('loading-screen').innerHTML = `
-        <div style="text-align: center; color: white; padding: 2rem;">
-            <div style="font-size: 3rem;">⏳</div>
-            <h2>En attente du démarrage</h2>
-            <p>L'animateur n'a pas encore démarré le quiz.</p>
-            <p>Rechargez la page dans quelques instants.</p>
-        </div>
-    `;
-    return;
+async function init() {
+    try {
+        console.log('Chargement config depuis:', CONFIG.sheetUrl);
+        const loaded = await loadConfigFromSheet();
+        console.log('Config chargée:', loaded, 'Questions:', QUESTIONS.length, 'Settings:', SETTINGS);
+        
+        if (!loaded || QUESTIONS.length === 0) {
+            throw new Error('Config non chargée ou 0 questions');
+        }
+
+        const pseudo = generatePseudo();
+        $('generated-pseudo').textContent = pseudo;
+
+        // Pré-inscription en arrière-plan (inactive)
+        state.mode = 'solo';
+        state.players = [{ pseudo: pseudo, team: null }];
+
+        console.log('🔄 Pré-inscription en cours...');
+        await preRegisterPlayer();
+
+        // VÉRIFICATION : Quiz déjà démarré ?
+        if (!SETTINGS.startTime) {
+            console.warn('Pas de startTime, affichage écran d\'attente');
+            showWaitingScreen();
+            // Polling toutes les 3 secondes pour vérifier si le quiz a démarré
+            setInterval(async () => {
+                await loadConfigFromSheet();
+                if (SETTINGS.startTime) {
+                    console.log('✅ Quiz démarré détecté !');
+                    state.referenceTime = SETTINGS.startTime;
+                    await activatePlayer();
+                    hideWaitingScreen();
+                }
+            }, 3000);
+            return;
+        }
+
+        // Quiz déjà en cours - utiliser le startTime du Sheet
+        state.referenceTime = SETTINGS.startTime;
+        
+        console.log('Synchronisation avec l\'animateur:', {
+            mode: SETTINGS.mode,
+            referenceTime: state.referenceTime,
+            currentTime: Date.now(),
+            diff: Date.now() - state.referenceTime,
+            startTimeDate: new Date(state.referenceTime).toISOString()
+        });
+
+        // Activer le joueur immédiatement (mode loop ou session déjà lancé)
+        await activatePlayer();
+
+        $('loading-screen').style.display = 'none';
+        $('register-screen').classList.add('active');
+        setupEventListeners();
+
+    } catch (error) {
+        console.error('Erreur init:', error);
+        $('loading-screen').innerHTML = `
+            <div class="error-message">
+                Impossible de se connecter au quiz.<br>
+                ${error.message}<br>
+                <small style="opacity:0.7">Vérifiez votre connexion et rechargez la page.</small>
+            </div>
+        `;
+    }
 }
 
-// Quiz déjà en cours - utiliser le pseudo déjà généré
-state.referenceTime = SETTINGS.startTime;
+// NOUVELLES FONCTIONS pour l'écran d'attente
+function showWaitingScreen() {
+    const player = state.players[0];
+    const teamLabel = player.team === 'blue' ? '🚌 Équipe Bleue' : '🚋 Équipe Rouge';
+    const teamClass = player.team;
 
-console.log('Synchronisation avec l\'animateur:', {
-    mode: SETTINGS.mode,
-    referenceTime: state.referenceTime,
-    currentTime: Date.now(),
-    diff: Date.now() - state.referenceTime,
-    startTimeDate: new Date(state.referenceTime).toISOString()
-});
+    $('waiting-pseudo').textContent = player.pseudo;
+    $('waiting-team').textContent = teamLabel;
+    $('waiting-team').className = `waiting-team ${teamClass}`;
 
-// Pré-inscription avec le pseudo déjà généré
-state.mode = 'solo';
-state.players = [{ pseudo: pseudo, team: null }];
+    $('loading-screen').style.display = 'none';
+    $('waiting-screen').classList.add('active');
+}
 
-console.log('🔄 Pré-inscription en cours...');
-await preRegisterPlayer();
-
-// ✅ ACTIVER LE JOUEUR IMMÉDIATEMENT (mode loop)
-await activatePlayer();
-
-$('loading-screen').style.display = 'none';
-$('register-screen').classList.add('active');
-setupEventListeners();
+function hideWaitingScreen() {
+    $('waiting-screen').classList.remove('active');
+    $('register-screen').classList.add('active');
+    setupEventListeners();
+}
         function setupEventListeners() {
             $('btn-refresh').onclick = () => { $('generated-pseudo').textContent = generatePseudo(); };
 
