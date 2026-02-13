@@ -97,7 +97,7 @@
             width: 180px; height: 180px; margin: 1.5rem auto; border-radius: 50%;
             background: conic-gradient(var(--team-blue) 0deg 180deg, var(--team-red) 180deg 360deg);
             position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            animation: spin 3s cubic-bezier(0.17, 0.67, 0.12, 0.99) forwards;
+            animation: spin 1.2s cubic-bezier(0.17, 0.67, 0.12, 0.99) forwards;
         }
         .lottery-wheel::before {
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -699,7 +699,7 @@ function hideWaitingScreen() {
     if ($('waiting-screen').classList.contains('active')) {
         console.log('🎯 Mode session : skip lottery, équipe déjà connue');
         $('waiting-screen').classList.remove('active');
-        showGameScreen();  // ← Direct au jeu
+        showGameScreen();
         return;
     }
     
@@ -715,10 +715,11 @@ function hideWaitingScreen() {
     const finalRotation = baseRotation + teamOffset + (Math.random() * 60 - 30);
     $('wheel').style.setProperty('--final-rotation', `${finalRotation}deg`);
 
+    // ✅ Réduit de 3500ms à 1500ms
     setTimeout(() => {
         $('lottery-anim').style.display = 'none';
         showTeamResult(assignedTeam);
-    }, 3500);
+    }, 1500);  // ← Changé de 3500 à 1500
 }
 
         function showTeamResult(team) {
