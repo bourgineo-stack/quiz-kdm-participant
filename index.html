@@ -757,10 +757,10 @@ function hideWaitingScreen() {
 async function preRegisterPlayer() {
     const player = state.players[0];
     
-    console.log('📝 Pré-inscription:', player.pseudo, 'active: false');
+    console.log('📝 Inscription:', player.pseudo);
     
     try {
-        // Envoyer avec active = false
+        // ✅ Inscription ACTIVE directement, sans sessionMarker (= en attente)
         await fetch(CONFIG.sheetUrl, {
             method: 'POST',
             mode: 'no-cors',
@@ -768,8 +768,8 @@ async function preRegisterPlayer() {
             body: JSON.stringify({ 
                 action: 'register', 
                 pseudo: player.pseudo, 
-                team: null,
-                active: false  // ← NE PAS ACTIVER
+                team: null
+                // Pas de sessionMarker = participant en attente
             })
         });
         
@@ -782,39 +782,17 @@ async function preRegisterPlayer() {
         const foundPlayer = participantsData.participants.find(p => p.pseudo === player.pseudo);
         if (foundPlayer) {
             player.team = foundPlayer.team;
-            console.log('✅ Équipe pré-assignée:', foundPlayer.team, '(inactif)');
+            console.log('✅ Équipe assignée:', foundPlayer.team);
         } else {
             console.warn('⚠️ Joueur non trouvé, fallback blue');
             player.team = 'blue';
         }
     } catch (error) {
-        console.error('❌ Erreur pré-inscription:', error);
-        player.team = 'blue';  // Fallback
+        console.error('❌ Erreur inscription:', error);
+        player.team = 'blue';
     }
 }
 
-        // ACTIVER le participant (passer active: false → true)
-async function activatePlayer() {
-    const player = state.players[0];
-    
-    console.log('✅ Activation:', player.pseudo);
-    
-    try {
-        await fetch(CONFIG.sheetUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: 'activate', 
-                pseudo: player.pseudo
-            })
-        });
-        
-        console.log('✅ Joueur activé');
-    } catch (error) {
-        console.error('❌ Erreur activation:', error);
-    }
-}
 
         function startGameLoop() {
             updateGame();
