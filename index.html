@@ -883,7 +883,7 @@ async function preRegisterPlayer() {
 
         function handleAnswer(answerIndex, playerIndex, containerId) {
             const quizState = getQuizState(state.referenceTime);
-            if (state.submitted[playerIndex] || quizState.phase === 'explain') return;
+            if (state.submitted[playerIndex] || quizState.phase === 'explain' || quizState.timeRemaining <= 3) return;
 
             state.currentAnswer[playerIndex] = answerIndex;
 
