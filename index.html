@@ -755,12 +755,11 @@ function hideWaitingScreen() {
         // PRÉ-INSCRIPTION (active: false)
 async function preRegisterPlayer() {
     const player = state.players[0];
-    
     console.log('📝 Inscription:', player.pseudo);
     
     try {
-        // ✅ Inscription ACTIVE directement, sans sessionMarker (= en attente)
-        await fetch(CONFIG.sheetUrl, {
+        // Lancer le register sans attendre
+        fetch(CONFIG.sheetUrl, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
@@ -768,13 +767,13 @@ async function preRegisterPlayer() {
                 action: 'register', 
                 pseudo: player.pseudo, 
                 team: null
-                // Pas de sessionMarker = participant en attente
             })
         });
         
-        // Attendre un peu puis récupérer l'équipe assignée
-        await new Promise(r => setTimeout(r, 800));
+        // Attendre 1.5s (GAS a besoin d'un minimum pour écrire)
+        await new Promise(r => setTimeout(r, 1500));
         
+        // Puis fetch l'équipe assignée
         const response = await fetch(`${CONFIG.sheetUrl}?action=getParticipants`);
         const participantsData = await response.json();
         
@@ -783,8 +782,13 @@ async function preRegisterPlayer() {
             player.team = foundPlayer.team;
             console.log('✅ Équipe assignée:', foundPlayer.team);
         } else {
-            console.warn('⚠️ Joueur non trouvé, fallback blue');
-            player.team = 'blue';
+            console.warn('⚠️ Joueur non trouvé après 1.5s, retry...');
+            // Un retry après 1s supplémentaire
+            await new Promise(r => setTimeout(r, 1000));
+            const retry = await fetch(`${CONFIG.sheetUrl}?action=getParticipants`);
+            const retryData = await retry.json();
+            const retryPlayer = retryData.participants.find(p => p.pseudo === player.pseudo);
+            player.team = retryPlayer ? retryPlayer.team : 'blue';
         }
     } catch (error) {
         console.error('❌ Erreur inscription:', error);
