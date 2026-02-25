@@ -562,11 +562,12 @@ async function init() {
             // Polling toutes les 3 secondes pour vérifier si le quiz a démarré
 setInterval(async () => {
     await loadConfigFromSheet();
-    if (SETTINGS.startTime) {
+   if (SETTINGS.startTime) {
         console.log('✅ Quiz démarré détecté !');
         state.referenceTime = SETTINGS.startTime;
-        // ✅ Plus besoin d'activer, juste lancer le jeu
-        hideWaitingScreen();
+        $('waiting-screen').classList.remove('active');
+        $('loading-screen').style.display = 'none';
+        showGameScreen();
     }
 }, 3000);
 return;
@@ -615,8 +616,8 @@ function showWaitingScreen() {
 
 function hideWaitingScreen() {
     $('waiting-screen').classList.remove('active');
-    // ✅ Ne PAS passer par register-screen, aller direct au jeu
-    showGameScreen();  // ← Changé
+    $('loading-screen').style.display = 'none';
+    showGameScreen();
 }
         function setupEventListeners() {
             $('btn-refresh').onclick = () => { $('generated-pseudo').textContent = generatePseudo(); };
