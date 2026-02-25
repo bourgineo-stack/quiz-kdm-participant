@@ -803,7 +803,25 @@ async function preRegisterPlayer() {
             state.gameLoopId = setInterval(updateGame, 500);
         }
 
-        function updateGame() {
+     function updateGame() {
+            const now = Date.now();
+            const elapsed = (now - state.referenceTime) / 1000;
+
+            // Countdown avant Q1 en mode atelier
+            if (SETTINGS.mode === 'session' && SETTINGS.firstQuestionDelay > 0 && elapsed < SETTINGS.firstQuestionDelay) {
+                const remaining = Math.ceil(SETTINGS.firstQuestionDelay - elapsed);
+                $('vote-phase').style.display = 'block';
+                $('explain-phase').style.display = 'none';
+                $('phase-bar').className = 'phase-bar vote';
+                $('phase-bar').textContent = '⏳ Le quiz démarre bientôt...';
+                $('question-text').textContent = `Le quiz commence dans ${remaining} seconde${remaining > 1 ? 's' : ''}...`;
+                $('options-container').innerHTML = '';
+                $('status-message').textContent = '';
+                $('game-timer').textContent = remaining;
+                $('game-timer').className = 'timer warning';
+                return;
+            }
+
             const quizState = getQuizState(state.referenceTime);
 
             // Fin du quiz
