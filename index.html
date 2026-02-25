@@ -183,7 +183,26 @@
 
         .status-message { text-align: center; padding: 1rem; font-weight: 600; color: #666; }
         .status-message.success { color: var(--success); }
-
+.insight-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.65rem 0.9rem;
+    margin-bottom: 0.5rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    background: rgba(255,255,255,0.03);
+}
+.insight-check.checked {
+    border-color: #43A047;
+    background: rgba(67,160,71,0.15);
+}
+.insight-checkbox { font-size: 1.15rem; flex-shrink: 0; margin-top: 0.05rem; }
+.insight-text { flex: 1; }
         /* Info panel */
         .info-panel {
             margin: 0 1rem 1rem; background: white; border-radius: 20px; overflow: hidden;
@@ -1049,7 +1068,61 @@ async function preRegisterPlayer() {
                 }
             });
         }
+function displayInsights(q) {
+    const container = $('info-content');
+    const insights = q.insights || [];
 
+    if (insights.length === 0) {
+        container.innerHTML = '<p style="opacity:0.5; text-align:center; padding:1rem;">📋 Écoutez l\'animateur...</p>';
+        return;
+    }
+
+    container.innerHTML = `
+        <p style="font-size:0.78rem; opacity:0.55; margin-bottom:0.75rem; text-align:center;">
+            ✅ Cochez ce qui vous a marqué
+        </p>
+        ${insights.map((text, i) => `
+            <label class="insight-check" id="insight-${q.id}-${i}">
+                <span class="insight-checkbox">☐</span>
+                <span class="insight-text">${text}</span>
+            </label>
+        `).join('')}
+    `;
+
+    // Attacher les événements après injection du HTML
+    insights.forEach((text, i) => {
+        const label = document.getElementById(`insight-${q.id}-${i}`);
+        if (label) label.addEventListener('click', () => toggleInsight(label, q.id, i, text));
+    });
+}
+
+function toggleInsight(label, questionId, insightIndex, insightText) {
+    const checkbox = label.querySelector('.insight-checkbox');
+    const isChecked = label.classList.toggle('checked');
+    checkbox.textContent = isChecked ? '☑' : '☐';
+    saveInsight(questionId, insightText, isChecked);
+}
+
+async function saveInsight(questionId, insightText, checked) {
+    if (!state.pseudo) return;
+    try {
+        await fetch(CONFIG.sheetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'saveInsight',
+                pseudo: state.pseudo,
+                questionId,
+                insightText,
+                checked,
+                timestamp: Date.now()
+            })
+        });
+    } catch(e) {
+        console.error('Erreur save insight:', e);
+    }
+}
         function showExplanation(quizState) {
             const q = quizState.currentQuestion;
 
@@ -1073,7 +1146,7 @@ async function preRegisterPlayer() {
                 `;
             }).join('');
 
-            $('info-content').innerHTML = q.info || '<p>Information non disponible.</p>';
+            displayInsights(q);
         }
 
         // === START ===
