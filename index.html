@@ -1082,17 +1082,17 @@ function displayInsights(q) {
             ✅ Cochez ce qui vous a marqué
         </p>
         ${insights.map((text, i) => `
-            <label class="insight-check" id="insight-${q.id}-${i}">
+            <div class="insight-check" id="insight-${q.id}-${i}">
                 <span class="insight-checkbox">☐</span>
                 <span class="insight-text">${text}</span>
-            </label>
+            </div>
         `).join('')}
     `;
 
     // Attacher les événements après injection du HTML
     insights.forEach((text, i) => {
-        const label = document.getElementById(`insight-${q.id}-${i}`);
-        if (label) label.addEventListener('click', () => toggleInsight(label, q.id, i, text));
+        const el = document.getElementById(`insight-${q.id}-${i}`);
+        if (el) el.addEventListener('click', () => toggleInsight(el, q.id, i, text));
     });
 }
 
