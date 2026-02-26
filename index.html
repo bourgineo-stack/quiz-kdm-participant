@@ -183,20 +183,7 @@
 
         .status-message { text-align: center; padding: 1rem; font-weight: 600; color: #666; }
         .status-message.success { color: var(--success); }
-.insight-check {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.7rem;
-    padding: 0.65rem 0.9rem;
-    margin-bottom: 0.5rem;
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.12);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 0.88rem;
-    line-height: 1.45;
-    background: rgba(255,255,255,0.03);
-}
+
 .insight-check.checked {
     border-color: #43A047;
     background: rgba(67,160,71,0.15);
@@ -205,13 +192,16 @@
 .insight-text { flex: 1; }
 
 .insight-check {
-            display: flex; align-items: flex-start; gap: 0.6rem;
-            padding: 0.55rem 0.7rem; margin-bottom: 0.45rem;
-            border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
-            cursor: pointer; transition: all 0.2s;
-            font-size: 0.85rem; line-height: 1.4;
-            background: rgba(255,255,255,0.03); color: white;
-        }
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    padding: 0.55rem 0.7rem; margin-bottom: 0.45rem;
+    border-radius: 10px; border: 1px solid rgba(0,0,0,0.12);
+    cursor: pointer; transition: all 0.2s;
+    font-size: 0.85rem; line-height: 1.4;
+    background: rgba(0,0,0,0.03); color: var(--gray-dark);
+}
+.insight-check.checked { border-color: #43A047; background: rgba(67,160,71,0.1); }
+.insight-checkbox { font-size: 1.05rem; flex-shrink: 0; }
+.insight-text { flex: 1; }
         .insight-check.checked { border-color: #43A047; background: rgba(67,160,71,0.15); }
         .insight-checkbox { font-size: 1.05rem; flex-shrink: 0; }
         .insight-text { flex: 1; }
@@ -470,7 +460,7 @@
                 </div>
             </div>
             <div class="info-panel">
-                <div class="info-header">💡 Le saviez-vous ?</div>
+                <div class="info-header" id="info-header-label">💡 Le saviez-vous ?</div>
                 <div class="info-content" id="info-content"></div>
             </div>
         </div>
@@ -1126,9 +1116,8 @@ function generatePDF(playerIndex) {
                     if (state.lastPhase !== 'explain') {
                         showDuoExplanation(quizState);
                     }
-                } else {
-                    $('p1-options').innerHTML = '';
-                    $('p2-options').innerHTML = '';
+                } else if (state.lastPhase === 'explain') {
+                    // On revient du explain vers le vote (nouvelle question) — laisser onQuestionChange gérer
                 }
             } else {
                 const phaseBar = $('phase-bar');
@@ -1142,6 +1131,7 @@ function generatePDF(playerIndex) {
                     showExplanation(quizState);
                 }
             }
+            state.lastPhase = quizState.phase;
         }
         function showDuoExplanation(quizState) {
             const q = quizState.currentQuestion;
@@ -1231,61 +1221,8 @@ function displayInsights(q, playerIndex, containerId) {
                 }
             });
         }
-function displayInsights(q) {
-    const container = $('info-content');
-    const insights = q.insights || [];
 
-    if (insights.length === 0) {
-        container.innerHTML = '<p style="opacity:0.5; text-align:center; padding:1rem;">📋 Écoutez l\'animateur...</p>';
-        return;
-    }
 
-    container.innerHTML = `
-        <p style="font-size:0.78rem; opacity:0.55; margin-bottom:0.75rem; text-align:center;">
-            ✅ Cochez ce qui vous a marqué
-        </p>
-        ${insights.map((text, i) => `
-            <div class="insight-check" id="insight-${q.id}-${i}">
-                <span class="insight-checkbox">☐</span>
-                <span class="insight-text">${text}</span>
-            </div>
-        `).join('')}
-    `;
-
-    // Attacher les événements après injection du HTML
-    insights.forEach((text, i) => {
-        const el = document.getElementById(`insight-${q.id}-${i}`);
-        if (el) el.addEventListener('click', () => toggleInsight(el, q.id, i, text));
-    });
-}
-
-function toggleInsight(label, questionId, insightIndex, insightText) {
-    const checkbox = label.querySelector('.insight-checkbox');
-    const isChecked = label.classList.toggle('checked');
-    checkbox.textContent = isChecked ? '☑' : '☐';
-    saveInsight(questionId, insightText, isChecked);
-}
-
-async function saveInsight(questionId, insightText, checked) {
-    if (!state.pseudo) return;
-    try {
-        await fetch(CONFIG.sheetUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'saveInsight',
-                pseudo: state.pseudo,
-                questionId,
-                insightText,
-                checked,
-                timestamp: Date.now()
-            })
-        });
-    } catch(e) {
-        console.error('Erreur save insight:', e);
-    }
-}
 function showExplanation(quizState) {
             const q = quizState.currentQuestion;
 
@@ -1295,7 +1232,10 @@ function showExplanation(quizState) {
 
             // Masquer les options, afficher les insights
             $('options-reveal').innerHTML = '';
+    $('info-header-label').textContent = '☑ En cochant, vous repartirez avec un résumé PDF de ces idées';
             displayInsights(q, 0, 'info-content');
+            // le containerId 'info-content' est dans une .info-panel blanche,
+            // il faut forcer la couleur du texte
         }
 
         // === START ===
