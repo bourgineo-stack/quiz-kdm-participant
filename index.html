@@ -501,7 +501,7 @@
         <div class="leave-icon">👋</div>
         <h2 class="leave-title">Merci d'avoir joué !</h2>
         <p class="leave-message">Vous avez quitté la partie.<br>À bientôt !</p>
-        <button class="btn-rejoin" id="btn-rejoin">🔄 Rejouer</button>
+        <div id="leave-pdf-buttons" style="width:100%; display:flex; flex-direction:column; gap:0.8rem; margin-bottom:1.5rem;"></div>
     </div>
 
     <!-- Fin du quiz -->
@@ -984,6 +984,19 @@ async function preRegisterPlayer() {
             $('game-screen').classList.remove('active');
             $('game-duo-screen').classList.remove('active');
             $('leave-screen').classList.add('active');
+
+            const leavePdfButtons = $('leave-pdf-buttons');
+            leavePdfButtons.innerHTML = '';
+            state.players.forEach((player, i) => {
+                const hasContent = (state.checkedInsights[i] || []).length > 0
+                    || Object.values(state.notes[i] || {}).some(n => n.trim());
+                if (!hasContent) return;
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary';
+                btn.textContent = `📄 Mon résumé — ${player.pseudo}`;
+                btn.onclick = () => generatePDF(i);
+                leavePdfButtons.appendChild(btn);
+            });
         }
 
         function rejoinGame() {
