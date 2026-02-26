@@ -539,7 +539,8 @@ const state = {
             submitted: {},
             gameLoopId: null,
             checkedInsights: { 0: [], 1: [] }, // par playerIndex
-            notes: { 0: {}, 1: {} }            // par playerIndex, par questionId
+            notes: { 0: {}, 1: {} },            // par playerIndex, par questionId
+            lastExplainQuestionId: null
         };
 
         const $ = id => document.getElementById(id);
@@ -692,7 +693,6 @@ function hideWaitingScreen() {
             $('btn-leave').onclick = leaveGame;
             $('btn-leave-duo').onclick = leaveGame;
             $('btn-rejoin').onclick = rejoinGame;
-            $('btn-replay').onclick = rejoinGame;
         }
 
         // === ENVOI AVEC RETRY ===
@@ -1172,7 +1172,7 @@ function displayInsights(q, playerIndex, containerId) {
                     <textarea 
                         id="note-${playerIndex}-${q.id}"
                         placeholder="📝 Ma note (optionnel)..."
-                        style="width:100%; min-height:60px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:white; font-family:inherit; font-size:0.85rem; padding:0.6rem; resize:vertical;"
+                        style="width:100%; min-height:60px; background:rgba(0,0,0,0.05); border:1px solid rgba(0,0,0,0.15); border-radius:10px; color:var(--gray-dark); font-family:inherit; font-size:0.85rem; padding:0.6rem; resize:vertical;"
                         oninput="saveNote(${playerIndex}, ${q.id}, this.value)"
                     >${savedNote}</textarea>
                 </div>
@@ -1230,9 +1230,12 @@ function showExplanation(quizState) {
             $('q-total-explain').textContent = QUESTIONS.length;
             $('question-text-explain').textContent = q.text;
 
-            // Masquer les options, afficher les insights
+            // Ne réinjecter les insights qu'une seule fois par question
+            if (state.lastExplainQuestionId === q.id) return;
+            state.lastExplainQuestionId = q.id;
+
             $('options-reveal').innerHTML = '';
-    $('info-header-label').textContent = '☑ En cochant, vous repartirez avec un résumé PDF de ces idées';
+            $('info-header-label').textContent = '☑ En cochant, vous repartirez avec un résumé PDF de ces idées';
             displayInsights(q, 0, 'info-content');
             // le containerId 'info-content' est dans une .info-panel blanche,
             // il faut forcer la couleur du texte
