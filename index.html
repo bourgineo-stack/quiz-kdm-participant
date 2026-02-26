@@ -203,6 +203,18 @@
 }
 .insight-checkbox { font-size: 1.15rem; flex-shrink: 0; margin-top: 0.05rem; }
 .insight-text { flex: 1; }
+
+.insight-check {
+            display: flex; align-items: flex-start; gap: 0.6rem;
+            padding: 0.55rem 0.7rem; margin-bottom: 0.45rem;
+            border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer; transition: all 0.2s;
+            font-size: 0.85rem; line-height: 1.4;
+            background: rgba(255,255,255,0.03); color: white;
+        }
+        .insight-check.checked { border-color: #43A047; background: rgba(67,160,71,0.15); }
+        .insight-checkbox { font-size: 1.05rem; flex-shrink: 0; }
+        .insight-text { flex: 1; }
         /* Info panel */
         .info-panel {
             margin: 0 1rem 1rem; background: white; border-radius: 20px; overflow: hidden;
@@ -509,7 +521,7 @@
         <div class="end-game-icon">🏆</div>
         <h2 class="end-game-title">Quiz terminé !</h2>
         <p class="end-game-message" id="end-game-message">Merci d'avoir participé !</p>
-        <button class="btn-rejoin" id="btn-replay">🔄 Rejouer</button>
+        <div id="pdf-buttons" style="padding: 1rem; display:flex; flex-direction:column; gap:0.8rem;"></div>
     </div>
 <!-- Écran d'attente synchronisation -->
 <div class="waiting-screen" id="waiting-screen">
@@ -528,14 +540,16 @@
     <script src="config.js"></script>
     <script>
         // === ÉTAT ===
-        const state = {
+const state = {
             referenceTime: null,
             players: [],
             currentAnswer: {},
             mode: 'solo',
             lastQuestionIndex: -1,
             submitted: {},
-            gameLoopId: null
+            gameLoopId: null,
+            checkedInsights: { 0: [], 1: [] }, // par playerIndex
+            notes: { 0: {}, 1: {} }            // par playerIndex, par questionId
         };
 
         const $ = id => document.getElementById(id);
@@ -1003,9 +1017,74 @@ async function preRegisterPlayer() {
             $('game-screen').classList.remove('active');
             $('game-duo-screen').classList.remove('active');
             $('end-game-screen').classList.add('active');
-            $('end-game-message').textContent = 'Merci d\'avoir participé ! Rendez-vous à l\'écran principal pour les résultats.';
+            $('end-game-message').textContent = 'Rendez-vous à l\'écran principal pour les résultats.';
+            const pdfButtons = $('pdf-buttons');
+            pdfButtons.innerHTML = '';
+            state.players.forEach((player, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary';
+                btn.textContent = `📄 Mon résumé — ${player.pseudo}`;
+                btn.onclick = () => generatePDF(i);
+                pdfButtons.appendChild(btn);
+            });
         }
+function generatePDF(playerIndex) {
+            const player = state.players[playerIndex];
+            const insights = state.checkedInsights[playerIndex] || [];
+            const notes = state.notes[playerIndex] || {};
 
+            // Regrouper par question
+            const byQuestion = {};
+            insights.forEach(c => {
+                if (!byQuestion[c.questionId]) byQuestion[c.questionId] = [];
+                byQuestion[c.questionId].push(c.text);
+            });
+
+            const questionTitles = {};
+            QUESTIONS.forEach(q => { questionTitles[q.id] = q.text; });
+
+            const hasContent = insights.length > 0 || Object.values(notes).some(n => n.trim());
+
+            const content = hasContent
+                ? Object.keys({ ...byQuestion, ...notes })
+                    .filter((qid, idx, arr) => arr.indexOf(qid) === idx)
+                    .sort((a, b) => a - b)
+                    .map(qid => {
+                        const qInsights = byQuestion[qid] || [];
+                        const note = notes[qid] || '';
+                        const title = questionTitles[qid] || `Question ${qid}`;
+                        return `
+                            <div style="margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid #eee;">
+                                <div style="font-size:0.8rem; color:#D2007A; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;">Question ${qid}</div>
+                                <div style="font-size:0.95rem; font-weight:700; color:#2D1B4E; margin-bottom:0.8rem;">${title}</div>
+                                ${qInsights.map(t => `<div style="display:flex; gap:0.5rem; margin-bottom:0.4rem;"><span style="color:#43A047; font-weight:800;">☑</span><span>${t}</span></div>`).join('')}
+                                ${note ? `<div style="margin-top:0.6rem; padding:0.6rem; background:#f9f9f9; border-radius:8px; font-size:0.88rem; color:#555; border-left:3px solid #D2007A;">📝 ${note}</div>` : ''}
+                            </div>`;
+                    }).join('')
+                : '<p style="color:#999; text-align:center; padding:2rem;">Aucune sélection faite pendant le quiz.</p>';
+
+            const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>Mon résumé Éco-Quiz — ${player.pseudo}</title>
+<style>
+  body { font-family: 'Nunito', Arial, sans-serif; padding: 2rem; color: #333; max-width: 600px; margin: 0 auto; }
+  @media print { body { padding: 1rem; } }
+</style></head>
+<body>
+  <div style="text-align:center; margin-bottom:2rem; padding-bottom:1rem; border-bottom:2px solid #D2007A;">
+    <div style="font-size:1.5rem; font-weight:800; color:#2D1B4E;">🌱 Éco-Quiz KDM</div>
+    <div style="font-size:1rem; color:#666; margin-top:0.3rem;">Mon résumé — <strong>${player.pseudo}</strong></div>
+    <div style="font-size:0.8rem; color:#999; margin-top:0.2rem;">${new Date().toLocaleDateString('fr-FR')}</div>
+  </div>
+  ${content}
+  <div style="text-align:center; margin-top:2rem; font-size:0.78rem; color:#bbb;">CO₂ = énergie consommée = argent dépensé</div>
+</body></html>`;
+
+            const win = window.open('', '_blank');
+            win.document.write(html);
+            win.document.close();
+            setTimeout(() => win.print(), 500);
+        }
         // === TIMER & PHASE ===
         function updateTimer(quizState) {
             const timeStr = formatTime(quizState.timeRemaining);
@@ -1038,10 +1117,18 @@ async function preRegisterPlayer() {
                 const phaseBar = $('phase-bar-duo');
                 phaseBar.className = `phase-bar ${quizState.phase}`;
                 phaseBar.textContent = phaseLabel;
+                if (quizState.phase === 'vote') {
+                    $('p1-question').style.display = '';
+                    $('p2-question').style.display = '';
+                }
 
                 if (quizState.phase === 'explain') {
-                    revealAnswers('p1-options', q.correct);
-                    revealAnswers('p2-options', q.correct);
+                    if (state.lastPhase !== 'explain') {
+                        showDuoExplanation(quizState);
+                    }
+                } else {
+                    $('p1-options').innerHTML = '';
+                    $('p2-options').innerHTML = '';
                 }
             } else {
                 const phaseBar = $('phase-bar');
@@ -1056,7 +1143,83 @@ async function preRegisterPlayer() {
                 }
             }
         }
+        function showDuoExplanation(quizState) {
+            const q = quizState.currentQuestion;
+            // Masquer les questions et options
+            $('p1-question').style.display = 'none';
+            $('p2-question').style.display = 'none';
+            $('p1-options').innerHTML = '';
+            $('p2-options').innerHTML = '';
+            // Afficher les insights dans chaque zone joueur
+            displayInsights(q, 0, 'p1-options');
+            displayInsights(q, 1, 'p2-options');
+        }
+function displayInsights(q, playerIndex, containerId) {
+            const container = $(containerId);
+            const insights = q.insights || [];
+            const playerLabel = state.mode === 'duo'
+                ? (playerIndex === 0 ? state.players[0].pseudo : state.players[1].pseudo)
+                : null;
 
+            const savedNote = (state.notes[playerIndex] || {})[q.id] || '';
+
+            container.innerHTML = `
+                ${playerLabel ? `<div style="font-size:0.78rem; font-weight:800; opacity:0.5; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:1px;">${playerLabel}</div>` : ''}
+                ${insights.length === 0
+                    ? '<p style="opacity:0.4; font-size:0.85rem; text-align:center; padding:0.5rem;">📋 Écoutez l\'animateur...</p>'
+                    : `<p style="font-size:0.75rem; opacity:0.5; margin-bottom:0.6rem;">✅ Cochez ce qui vous a marqué</p>
+                       ${insights.map((text, i) => {
+                           const isChecked = (state.checkedInsights[playerIndex] || [])
+                               .some(c => c.questionId === q.id && c.index === i);
+                           return `<div class="insight-check ${isChecked ? 'checked' : ''}" 
+                                        id="insight-${playerIndex}-${q.id}-${i}">
+                                       <span class="insight-checkbox">${isChecked ? '☑' : '☐'}</span>
+                                       <span class="insight-text">${text}</span>
+                                   </div>`;
+                       }).join('')}`
+                }
+                <div style="margin-top:0.8rem;">
+                    <textarea 
+                        id="note-${playerIndex}-${q.id}"
+                        placeholder="📝 Ma note (optionnel)..."
+                        style="width:100%; min-height:60px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:white; font-family:inherit; font-size:0.85rem; padding:0.6rem; resize:vertical;"
+                        oninput="saveNote(${playerIndex}, ${q.id}, this.value)"
+                    >${savedNote}</textarea>
+                </div>
+            `;
+
+            insights.forEach((text, i) => {
+                const el = document.getElementById(`insight-${playerIndex}-${q.id}-${i}`);
+                if (el) el.addEventListener('click', () => toggleInsight(el, playerIndex, q.id, i, text));
+            });
+        }
+
+        function toggleInsight(el, playerIndex, questionId, insightIndex, insightText) {
+            const checkbox = el.querySelector('.insight-checkbox');
+            const isChecked = el.classList.toggle('checked');
+            checkbox.textContent = isChecked ? '☑' : '☐';
+
+            if (!state.checkedInsights[playerIndex]) state.checkedInsights[playerIndex] = [];
+            if (isChecked) {
+                state.checkedInsights[playerIndex].push({ questionId, index: insightIndex, text: insightText });
+            } else {
+                state.checkedInsights[playerIndex] = state.checkedInsights[playerIndex]
+                    .filter(c => !(c.questionId === questionId && c.index === insightIndex));
+            }
+            sendToSheet({
+                action: 'saveInsight',
+                pseudo: state.players[playerIndex]?.pseudo || 'anonyme',
+                questionId,
+                insightText,
+                checked: isChecked,
+                timestamp: Date.now()
+            });
+        }
+
+        function saveNote(playerIndex, questionId, value) {
+            if (!state.notes[playerIndex]) state.notes[playerIndex] = {};
+            state.notes[playerIndex][questionId] = value;
+        }
         function revealAnswers(containerId, correctIndex) {
             const container = $(containerId);
             container.querySelectorAll('.option-btn').forEach((btn, i) => {
@@ -1123,30 +1286,16 @@ async function saveInsight(questionId, insightText, checked) {
         console.error('Erreur save insight:', e);
     }
 }
-        function showExplanation(quizState) {
+function showExplanation(quizState) {
             const q = quizState.currentQuestion;
 
             $('q-num-explain').textContent = quizState.questionIndex + 1;
             $('q-total-explain').textContent = QUESTIONS.length;
             $('question-text-explain').textContent = q.text;
 
-            const letters = ['A', 'B', 'C', 'D'];
-            $('options-reveal').innerHTML = q.options.map((opt, i) => {
-                const isCorrect = i === q.correct;
-                const wasSelected = state.currentAnswer[0] === i;
-                let classes = 'option-btn';
-                if (isCorrect) classes += ' correct';
-                else if (wasSelected) classes += ' wrong';
-
-                return `
-                    <button class="${classes}" disabled>
-                        <span class="letter">${letters[i]}</span>
-                        <span>${opt}</span>
-                    </button>
-                `;
-            }).join('');
-
-            displayInsights(q);
+            // Masquer les options, afficher les insights
+            $('options-reveal').innerHTML = '';
+            displayInsights(q, 0, 'info-content');
         }
 
         // === START ===
