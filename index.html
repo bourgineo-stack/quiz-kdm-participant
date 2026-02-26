@@ -992,7 +992,7 @@ async function preRegisterPlayer() {
                 if (!hasContent) return;
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-primary';
-                btn.textContent = `📄 Mon résumé — ${player.pseudo}`;
+                btn.textContent = `📄 Télécharger mon résumé PDF — ${player.pseudo}`;
                 btn.onclick = () => generatePDF(i);
                 leavePdfButtons.appendChild(btn);
             });
