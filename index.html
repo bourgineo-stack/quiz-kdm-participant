@@ -1080,10 +1080,13 @@ function generatePDF(playerIndex) {
   <div style="text-align:center; margin-top:2rem; font-size:0.78rem; color:#bbb;">CO₂ = énergie consommée = argent dépensé</div>
 </body></html>`;
 
-            const win = window.open('', '_blank');
-            win.document.write(html);
-            win.document.close();
-            setTimeout(() => win.print(), 500);
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `eco-quiz-${player.pseudo}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
         // === TIMER & PHASE ===
         function updateTimer(quizState) {
