@@ -818,9 +818,17 @@ async function preRegisterPlayer() {
 }
 
 
-        function startGameLoop() {
+       function startGameLoop() {
             updateGame();
             state.gameLoopId = setInterval(updateGame, 500);
+            
+            // Timeout 2 minutes si le joueur ne répond jamais
+            state.inactivityTimeout = setTimeout(() => {
+                if (state.lastQuestionIndex === -1) {
+                    sendToSheet({ action: 'leaveGame', pseudo: state.players[0].pseudo });
+                    console.log('⏱️ Timeout inactivité - joueur retiré');
+                }
+            }, 120000);
         }
 
      function updateGame() {
