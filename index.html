@@ -1271,7 +1271,14 @@ function showExplanation(quizState) {
         }
 
         // === START ===
-        document.addEventListener('DOMContentLoaded', init);
+        // Après
+window.addEventListener('beforeunload', (e) => {
+    if (state.players.length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
