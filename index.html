@@ -1257,6 +1257,9 @@ function showExplanation(quizState) {
 
             if (state.lastExplainQuestionId === q.id) return;
 state.lastExplainQuestionId = q.id;
+    $('q-num-explain').textContent = quizState.questionIndex + 1;
+$('q-total-explain').textContent = QUESTIONS.length;
+    
 
 // 1. Afficher d'abord la révélation bonne/mauvaise réponse
 const letters = ['A', 'B', 'C', 'D'];
