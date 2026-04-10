@@ -822,8 +822,10 @@ async function preRegisterPlayer() {
        function startGameLoop() {
            if (state.gameLoopId) clearInterval(state.gameLoopId);
 state.gameLoopId = null;
-            updateGame();
-            state.gameLoopId = setInterval(updateGame, 500);
+updateGame();
+if (!state.endScreenShown) {
+    state.gameLoopId = setInterval(updateGame, 500);
+}
             
             // Timeout 2 minutes si le joueur ne répond jamais
             state.inactivityTimeout = setTimeout(() => {
