@@ -1034,6 +1034,9 @@ if (!state.endScreenShown) {
             if (state.gameLoopId) clearInterval(state.gameLoopId);
             $('game-screen').classList.remove('active');
             $('game-duo-screen').classList.remove('active');
+            $('explain-phase').style.display = 'none';
+            $('vote-phase').style.display = 'none';
+            if (state.gameLoopId) { clearInterval(state.gameLoopId); state.gameLoopId = null; }
             $('end-game-screen').classList.add('active');
             $('end-game-message').textContent = 'Rendez-vous à l\'écran principal pour les résultats.';
             const pdfButtons = $('pdf-buttons');
