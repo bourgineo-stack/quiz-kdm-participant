@@ -1289,9 +1289,10 @@ $('info-content').innerHTML = '';
 
 setTimeout(() => {
     $('options-reveal').innerHTML = '';
-    $('info-header-label').style.display = '';
-    $('info-header-label').textContent = '☑ En cochant, vous repartirez avec un résumé PDF';
-    displayInsights(q, 0, 'info-content');
+    $('info-panel').style.display = '';
+$('info-header-label').style.display = '';
+$('info-header-label').textContent = '☑ En cochant, vous repartirez avec un résumé PDF';
+displayInsights(q, 0, 'info-content');
 }, 3000);
         }
 
