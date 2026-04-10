@@ -1000,7 +1000,7 @@ async function preRegisterPlayer() {
                 if (!hasContent) return;
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-primary';
-                btn.textContent = `📄 Télécharger mon résumé PDF — ${player.pseudo}`;
+                btn.textContent = `📄 Télécharger mon résumé PDF - ${player.pseudo}`;
                 btn.onclick = () => generatePDF(i);
                 leavePdfButtons.appendChild(btn);
             });
@@ -1031,7 +1031,7 @@ async function preRegisterPlayer() {
             state.players.forEach((player, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-primary';
-                btn.textContent = `📄 Mon résumé — ${player.pseudo}`;
+                btn.textContent = `📄 Mon résumé - ${player.pseudo}`;
                 btn.onclick = () => generatePDF(i);
                 pdfButtons.appendChild(btn);
             });
@@ -1073,7 +1073,7 @@ function generatePDF(playerIndex) {
 
             const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8">
-<title>Mon résumé Éco-Quiz — ${player.pseudo}</title>
+<title>Mon résumé Éco-Quiz - ${player.pseudo}</title>
 <style>
   body { font-family: 'Nunito', Arial, sans-serif; padding: 2rem; color: #333; max-width: 600px; margin: 0 auto; }
   @media print { body { padding: 1rem; } }
@@ -1081,7 +1081,7 @@ function generatePDF(playerIndex) {
 <body>
   <div style="text-align:center; margin-bottom:2rem; padding-bottom:1rem; border-bottom:2px solid #D2007A;">
     <div style="font-size:1.5rem; font-weight:800; color:#2D1B4E;">🌱 Éco-Quiz KDM</div>
-    <div style="font-size:1rem; color:#666; margin-top:0.3rem;">Mon résumé — <strong>${player.pseudo}</strong></div>
+    <div style="font-size:1rem; color:#666; margin-top:0.3rem;">Mon résumé - <strong>${player.pseudo}</strong></div>
     <div style="font-size:0.8rem; color:#999; margin-top:0.2rem;">${new Date().toLocaleDateString('fr-FR')}</div>
   </div>
   ${content}
@@ -1090,7 +1090,7 @@ function generatePDF(playerIndex) {
 
            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             if (isIOS) {
-                alert('📱 Sur iPhone : votre résumé va s\'ouvrir dans un nouvel onglet. Appuyez sur le bouton Partager ↑ en bas de l\'écran, puis "Sur mon iPhone" pour le sauvegarder — sans ça, il sera perdu.');
+                alert('📱 Sur iPhone : votre résumé va s\'ouvrir dans un nouvel onglet. Appuyez sur le bouton Partager ↑ en bas de l\'écran, puis "Sur mon iPhone" pour le sauvegarder - sans ça, il sera perdu.');
                 const win = window.open('', '_blank');
                 win.document.write(html);
                 win.document.close();
@@ -1146,7 +1146,7 @@ function generatePDF(playerIndex) {
                         showDuoExplanation(quizState);
                     }
                 } else if (state.lastPhase === 'explain') {
-                    // On revient du explain vers le vote (nouvelle question) — laisser onQuestionChange gérer
+                    // On revient du explain vers le vote (nouvelle question) - laisser onQuestionChange gérer
                 }
             } else {
                 const phaseBar = $('phase-bar');
