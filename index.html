@@ -538,7 +538,8 @@ const state = {
             gameLoopId: null,
             checkedInsights: { 0: [], 1: [] }, // par playerIndex
             notes: { 0: {}, 1: {} },            // par playerIndex, par questionId
-            lastExplainQuestionId: null
+            lastExplainQuestionId: null,
+            endScreenShown: false
         };
 
         const $ = id => document.getElementById(id);
@@ -853,10 +854,13 @@ async function preRegisterPlayer() {
             const quizState = getQuizState(state.referenceTime);
 
             // Fin du quiz
-            if (quizState.finished) {
-                showEndGameScreen();
-                return;
-            }
+           if (quizState.finished) {
+    if (!state.endScreenShown) {
+        state.endScreenShown = true;
+        showEndGameScreen();
+    }
+    return;
+}
 
             if (quizState.questionIndex !== state.lastQuestionIndex) {
                 state.lastQuestionIndex = quizState.questionIndex;
