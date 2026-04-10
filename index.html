@@ -820,6 +820,8 @@ async function preRegisterPlayer() {
 
 
        function startGameLoop() {
+           if (state.gameLoopId) clearInterval(state.gameLoopId);
+state.gameLoopId = null;
             updateGame();
             state.gameLoopId = setInterval(updateGame, 500);
             
@@ -1278,11 +1280,12 @@ $('options-reveal').innerHTML = q.options.map((opt, i) => {
         <span>${opt}</span>
     </button>`;
 }).join('');
-$('info-header-label').textContent = '💡 Le saviez-vous ?';
+$('info-header-label').style.display = 'none';
 $('info-content').innerHTML = '';
 
 setTimeout(() => {
     $('options-reveal').innerHTML = '';
+    $('info-header-label').style.display = '';
     $('info-header-label').textContent = '☑ En cochant, vous repartirez avec un résumé PDF';
     displayInsights(q, 0, 'info-content');
 }, 3000);
