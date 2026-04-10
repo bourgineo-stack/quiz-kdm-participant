@@ -457,7 +457,7 @@
                     <div class="options" id="options-reveal"></div>
                 </div>
             </div>
-            <div class="info-panel">
+            <div class="info-panel" id="info-panel" style="display:none;">
                 <div class="info-header" id="info-header-label" style="display:none;">💡 Le saviez-vous ?</div>
                 <div class="info-content" id="info-content"></div>
             </div>
@@ -738,6 +738,7 @@ function hideWaitingScreen() {
 
     // ✅ Réduit de 3500ms à 1500ms
     setTimeout(() => {
+        $('info-panel').style.display = '';
         $('lottery-anim').style.display = 'none';
         showTeamResult(assignedTeam);
     }, 1500);  // ← Changé de 3500 à 1500
@@ -1283,6 +1284,7 @@ $('options-reveal').innerHTML = q.options.map((opt, i) => {
     </button>`;
 }).join('');
 $('info-header-label').style.display = 'none';
+$('info-panel').style.display = 'none';
 $('info-content').innerHTML = '';
 
 setTimeout(() => {
