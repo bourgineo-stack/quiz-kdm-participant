@@ -1039,7 +1039,7 @@ if (!state.endScreenShown) {
             $('phase-bar').style.display = 'none';
             if (state.gameLoopId) { clearInterval(state.gameLoopId); state.gameLoopId = null; }
             $('end-game-screen').classList.add('active');
-            $('end-game-message').textContent = 'Rendez-vous à l\'écran principal pour les résultats.';
+            $('end-game-message').textContent = '📥 Téléchargez votre résumé - toutes vos idées cochées, pour ce soir et dans un an.';
             const pdfButtons = $('pdf-buttons');
             pdfButtons.innerHTML = '';
             state.players.forEach((player, i) => {
