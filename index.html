@@ -1271,6 +1271,7 @@ function showExplanation(quizState) {
 
             if (state.lastExplainQuestionId === q.id) return;
 state.lastExplainQuestionId = q.id;
+    $('question-text-explain').textContent = q.text;
     $('q-num-explain').textContent = quizState.questionIndex + 1;
 $('q-total-explain').textContent = QUESTIONS.length;
     
