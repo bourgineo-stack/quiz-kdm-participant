@@ -586,12 +586,23 @@ async function init() {
 setInterval(async () => {
     await loadConfigFromSheet();
    if (SETTINGS.startTime) {
-        console.log('✅ Quiz démarré détecté !');
-        state.referenceTime = SETTINGS.startTime;
-        $('waiting-screen').classList.remove('active');
-        $('loading-screen').style.display = 'none';
-        showGameScreen();
-    }
+    console.log('✅ Quiz démarré détecté !');
+    state.referenceTime = SETTINGS.startTime;
+    // Mettre à jour le sessionMarker maintenant qu'on connaît le startTime
+    fetch(CONFIG.sheetUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            action: 'register', 
+            pseudo: state.players[0].pseudo, 
+            team: state.players[0].team
+        })
+    });
+    $('waiting-screen').classList.remove('active');
+    $('loading-screen').style.display = 'none';
+    showGameScreen();
+}
 }, 3000);
 return;
         }
