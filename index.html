@@ -575,8 +575,18 @@ async function init() {
             await new Promise(r => setTimeout(r, 1000));
         }
         
-        if (!loaded || QUESTIONS.length === 0) {
-            throw new Error('Config non chargée ou 0 questions');
+        // Après :
+        while (!loaded || QUESTIONS.length === 0) {
+            console.warn('⚠️ Config non chargée, nouvelle tentative...');
+            $('loading-screen').querySelector('.loading-text').innerHTML = 
+                'Connexion en cours...<br><small style="opacity:0.6; font-size:0.85rem;">Le serveur est occupé, patience...</small>';
+            await new Promise(r => setTimeout(r, 3000));
+            try {
+                await Promise.race([
+                    loadConfigFromSheet().then(r => { loaded = r; }),
+                    new Promise((_, reject) => setTimeout(() => reject(), 4000))
+                ]);
+            } catch(e) {}
         }
 
         const pseudo = generatePseudo();
