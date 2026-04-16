@@ -607,7 +607,7 @@ async function init() {
             // Polling toutes les 3 secondes pour vérifier si le quiz a démarré
 setInterval(async () => {
     try {
-        const res = await fetch(`${CONFIG.sheetUrl}?action=getConfig`);
+       const res = await fetch(`${CONFIG.sheetUrl}?action=getStartTime`);
         const data = await res.json();
         if (data.startTime) {
             SETTINGS.startTime = data.startTime;
@@ -835,25 +835,28 @@ async function preRegisterPlayer() {
         });
         
         // Attendre 1.5s (GAS a besoin d'un minimum pour écrire)
-        await new Promise(r => setTimeout(r, 1500));
+       // Polling jusqu'à récupérer l'équipe, max 15s
+        let foundTeam = null;
+        const deadline = Date.now() + 15000;
+        await new Promise(r => setTimeout(r, 1000));
         
-        // Puis fetch l'équipe assignée
-        const response = await fetch(`${CONFIG.sheetUrl}?action=getParticipants`);
-        const participantsData = await response.json();
-        
-        const foundPlayer = participantsData.participants.find(p => p.pseudo === player.pseudo);
-        if (foundPlayer) {
-            player.team = foundPlayer.team;
-            console.log('✅ Équipe assignée:', foundPlayer.team);
-        } else {
-            console.warn('⚠️ Joueur non trouvé après 1.5s, retry...');
-            // Un retry après 1s supplémentaire
-            await new Promise(r => setTimeout(r, 1000));
-            const retry = await fetch(`${CONFIG.sheetUrl}?action=getParticipants`);
-            const retryData = await retry.json();
-            const retryPlayer = retryData.participants.find(p => p.pseudo === player.pseudo);
-            player.team = retryPlayer ? retryPlayer.team : 'blue';
+        while (!foundTeam && Date.now() < deadline) {
+            try {
+                const response = await fetch(`${CONFIG.sheetUrl}?action=getParticipants`);
+                const participantsData = await response.json();
+                const foundPlayer = participantsData.participants.find(p => p.pseudo === player.pseudo);
+                if (foundPlayer) {
+                    foundTeam = foundPlayer.team;
+                } else {
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+            } catch(e) {
+                await new Promise(r => setTimeout(r, 2000));
+            }
         }
+        
+        player.team = foundTeam || (Math.random() < 0.5 ? 'blue' : 'red');
+        console.log('✅ Équipe assignée:', player.team);
     } catch (error) {
         console.error('❌ Erreur inscription:', error);
         player.team = 'blue';
