@@ -560,8 +560,20 @@ const state = {
 async function init() {
     try {
         console.log('Chargement config depuis:', CONFIG.sheetUrl);
-        const loaded = await loadConfigFromSheet();
-        console.log('Config chargée:', loaded, 'Questions:', QUESTIONS.length, 'Settings:', SETTINGS);
+        // Après :
+        let loaded = false;
+        for (let i = 0; i < 5; i++) {
+            try {
+                await Promise.race([
+                    loadConfigFromSheet().then(r => { loaded = r; }),
+                    new Promise((_, reject) => setTimeout(() => reject(), 4000))
+                ]);
+                if (loaded && QUESTIONS.length > 0) break;
+            } catch(e) {
+                console.warn(`⚠️ Tentative ${i+1}/5 échouée, retry...`);
+            }
+            await new Promise(r => setTimeout(r, 1000));
+        }
         
         if (!loaded || QUESTIONS.length === 0) {
             throw new Error('Config non chargée ou 0 questions');
