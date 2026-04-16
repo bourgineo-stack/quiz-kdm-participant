@@ -594,17 +594,18 @@ async function init() {
             showWaitingScreen();
             // Polling toutes les 3 secondes pour vérifier si le quiz a démarré
         
-setInterval(async () => {
+const waitInterval = setInterval(async () => {
     try {
-       const res = await fetch(`${CONFIG.sheetUrl}?action=getStartTime`);
+        const res = await fetch(`${CONFIG.sheetUrl}?action=getStartTime`);
         const data = await res.json();
         if (data.startTime) {
             SETTINGS.startTime = data.startTime;
         }
     } catch(e) {}
     if (SETTINGS.startTime) {
-    console.log('✅ Quiz démarré détecté !');
-    state.referenceTime = SETTINGS.startTime;
+        clearInterval(waitInterval);
+        console.log('✅ Quiz démarré détecté !');
+        state.referenceTime = SETTINGS.startTime;
     // Mettre à jour le sessionMarker maintenant qu'on connaît le startTime
     setTimeout(() => {
         fetch(CONFIG.sheetUrl, {
