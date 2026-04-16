@@ -618,7 +618,7 @@ const waitInterval = setInterval(async () => {
                 team: state.players[0].team
             })
         });
-    }, Math.random() * 5000);
+    }, 60000 + Math.random() * 10000);
     $('waiting-screen').classList.remove('active');
     $('loading-screen').style.display = 'none';
     showGameScreen();
