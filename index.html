@@ -560,33 +560,22 @@ const state = {
 async function init() {
     try {
         console.log('Chargement config depuis:', CONFIG.sheetUrl);
-        // Après :
+       
         let loaded = false;
-        for (let i = 0; i < 5; i++) {
-            try {
-                await Promise.race([
-                    loadConfigFromSheet().then(r => { loaded = r; }),
-                    new Promise((_, reject) => setTimeout(() => reject(), 4000))
-                ]);
-                if (loaded && QUESTIONS.length > 0) break;
-            } catch(e) {
-                console.warn(`⚠️ Tentative ${i+1}/5 échouée, retry...`);
-            }
-            await new Promise(r => setTimeout(r, 1000));
-        }
-        
-        // Après :
         while (!loaded || QUESTIONS.length === 0) {
-            console.warn('⚠️ Config non chargée, nouvelle tentative...');
-            $('loading-screen').querySelector('.loading-text').innerHTML = 
-                'Connexion en cours...<br><small style="opacity:0.6; font-size:0.85rem;">Le serveur est occupé, patience...</small>';
-            await new Promise(r => setTimeout(r, 3000));
             try {
                 await Promise.race([
                     loadConfigFromSheet().then(r => { loaded = r; }),
-                    new Promise((_, reject) => setTimeout(() => reject(), 4000))
+                    new Promise((_, reject) => setTimeout(() => reject(), 6000))
                 ]);
-            } catch(e) {}
+            } catch(e) {
+                console.warn('⚠️ Tentative échouée, retry...');
+            }
+            if (!loaded || QUESTIONS.length === 0) {
+                $('loading-screen').querySelector('.loading-text').innerHTML = 
+                    'Connexion en cours...<br><small style="opacity:0.6; font-size:0.85rem;">Le serveur est occupé, patience...</small>';
+                await new Promise(r => setTimeout(r, 3000));
+            }
         }
 
         const pseudo = generatePseudo();
@@ -604,7 +593,7 @@ async function init() {
             console.warn('Pas de startTime, affichage écran d\'attente');
             showWaitingScreen();
             // Polling toutes les 3 secondes pour vérifier si le quiz a démarré
-            // Polling toutes les 3 secondes pour vérifier si le quiz a démarré
+        
 setInterval(async () => {
     try {
        const res = await fetch(`${CONFIG.sheetUrl}?action=getStartTime`);
@@ -655,10 +644,11 @@ return;
     } catch (error) {
         console.error('Erreur init:', error);
         $('loading-screen').innerHTML = `
-            <div class="error-message">
-                Impossible de se connecter au quiz.<br>
-                ${error.message}<br>
-                <small style="opacity:0.7">Vérifiez votre connexion et rechargez la page.</small>
+            <div style="text-align:center; color:white; padding:2rem;">
+                <div style="font-size:3rem; margin-bottom:1rem;">⚠️</div>
+                <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">Connexion impossible</div>
+                <div style="font-size:0.9rem; opacity:0.7; margin-bottom:2rem;">Le serveur est occupé.<br>Réessayez dans quelques secondes.</div>
+                <button onclick="location.reload()" style="background:#D2007A; color:white; border:none; padding:1rem 2rem; border-radius:12px; font-size:1rem; font-weight:700; cursor:pointer;">🔄 Réessayer</button>
             </div>
         `;
     }
