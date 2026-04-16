@@ -829,7 +829,7 @@ async function preRegisterPlayer() {
        // Polling jusqu'à récupérer l'équipe, max 15s
         let foundTeam = null;
         const deadline = Date.now() + 15000;
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 2000));
         
         while (!foundTeam && Date.now() < deadline) {
             try {
