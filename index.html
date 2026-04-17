@@ -924,10 +924,11 @@ if (!state.endScreenShown) {
 
             // Fin du quiz
            if (quizState.finished) {
-    if (!state.endScreenShown) {
-        state.endScreenShown = true;
-        showEndGameScreen();
-    }
+    // après :
+if (!state.endScreenShown) {
+    state.endScreenShown = true;
+    showReviewScreen();
+}
     return;
 }
 
@@ -1092,6 +1093,58 @@ if (!state.endScreenShown) {
             $('register-screen').classList.add('active');
             $('generated-pseudo').textContent = generatePseudo();
         }
+
+        function showReviewScreen() {
+    if (state.gameLoopId) { clearInterval(state.gameLoopId); state.gameLoopId = null; }
+    $('game-screen').style.display = 'none';
+    $('game-duo-screen').classList.remove('active');
+    $('explain-phase').style.display = 'none';
+    $('vote-phase').style.display = 'none';
+    $('phase-bar').style.display = 'none';
+
+    const container = $('review-content');
+    container.innerHTML = '';
+
+    state.players.forEach((player, playerIndex) => {
+        const playerSection = document.createElement('div');
+        playerSection.style.cssText = 'padding: 0 1rem;';
+
+        if (state.players.length > 1) {
+            playerSection.innerHTML = `<div style="font-size:0.78rem; font-weight:800; opacity:0.5; text-transform:uppercase; letter-spacing:1px; margin: 1rem 0 0.5rem;">${player.pseudo}</div>`;
+        }
+
+        // après :
+QUESTIONS.forEach(q => {
+    const qDiv = document.createElement('div');
+    qDiv.style.cssText = 'margin-bottom:1.2rem; padding-bottom:1rem; border-bottom:1px solid rgba(0,0,0,0.07);';
+    qDiv.innerHTML = `<div style="font-size:0.78rem; color:var(--divia-magenta); font-weight:800; margin-bottom:0.3rem;">Q${q.id} — ${q.text}</div>
+        <div id="review-insights-${playerIndex}-${q.id}"></div>`;
+    playerSection.appendChild(qDiv);
+});
+container.appendChild(playerSection);
+QUESTIONS.forEach(q => {
+    displayInsights(q, playerIndex, `review-insights-${playerIndex}-${q.id}`);
+});
+
+        // Bouton PDF intermédiaire (sauf dernier joueur)
+        const btnDiv = document.createElement('div');
+        btnDiv.style.cssText = 'padding: 0.5rem 1rem 1.5rem;';
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary';
+        btn.textContent = `📄 Générer mon PDF — ${player.pseudo}`;
+        btn.onclick = () => generatePDF(playerIndex);
+        btnDiv.appendChild(btn);
+        container.appendChild(btnDiv);
+
+        if (playerIndex < state.players.length - 1) {
+            const sep = document.createElement('div');
+            sep.style.cssText = 'height:2px; background:rgba(0,0,0,0.08); margin: 0.5rem 1rem 1.5rem;';
+            container.appendChild(sep);
+        }
+    });
+
+    $('review-screen').classList.add('active');
+}
 
         // === FIN DU QUIZ ===
         function showEndGameScreen() {
