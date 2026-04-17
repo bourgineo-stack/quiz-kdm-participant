@@ -21,6 +21,11 @@
             --warning: #FFA726;
         }
 
+        html {
+    overscroll-behavior: none;
+    overflow: hidden;
+    height: 100%;
+}
         * {
             margin: 0; padding: 0; box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -1429,6 +1434,16 @@ window.addEventListener('beforeunload', (e) => {
         e.preventDefault();
         e.returnValue = '';
     }
+});
+        document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1) return; // autoriser le pinch-zoom
+    const target = e.target;
+    const scrollable = target.closest('textarea, [style*="overflow"]');
+    if (!scrollable) e.preventDefault();
+}, { passive: false });
+        history.pushState(null, '', window.location.href);
+window.addEventListener('popstate', () => {
+    history.pushState(null, '', window.location.href);
 });
 document.addEventListener('DOMContentLoaded', init);
     </script>
