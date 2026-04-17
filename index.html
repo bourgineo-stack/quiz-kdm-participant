@@ -36,7 +36,8 @@
             min-height: -webkit-fill-available;
             color: var(--gray-dark);
             overflow-x: hidden;
-            overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
         }
 
         .screen { display: none; min-height: 100vh; min-height: -webkit-fill-available; }
@@ -1433,21 +1434,7 @@ window.addEventListener('beforeunload', (e) => {
         e.returnValue = '';
     }
 });
-       let touchStartY = 0;
-document.addEventListener('touchstart', (e) => {
-    touchStartY = e.touches[0].clientY;
-}, { passive: true });
-
-document.addEventListener('touchmove', (e) => {
-    if (e.touches.length > 1) return;
-    const target = e.target;
-    if (target.closest('textarea')) return;
-    const el = target.closest('.screen.active');
-    if (!el) return;
-    const atTop = el.scrollTop === 0;
-    const movingDown = e.touches[0].clientY > touchStartY;
-    if (atTop && movingDown) e.preventDefault();
-}, { passive: false });
+       
         history.pushState(null, '', window.location.href);
 window.addEventListener('popstate', () => {
     history.pushState(null, '', window.location.href);
