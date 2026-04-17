@@ -1069,20 +1069,7 @@ if (!state.endScreenShown) {
             if (state.gameLoopId) clearInterval(state.gameLoopId);
             $('game-screen').classList.remove('active');
             $('game-duo-screen').classList.remove('active');
-            $('leave-screen').classList.add('active');
-
-            const leavePdfButtons = $('leave-pdf-buttons');
-            leavePdfButtons.innerHTML = '';
-            state.players.forEach((player, i) => {
-                const hasContent = (state.checkedInsights[i] || []).length > 0
-                    || Object.values(state.notes[i] || {}).some(n => n.trim());
-                if (!hasContent) return;
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-primary';
-                btn.textContent = `📄 Télécharger mon résumé PDF - ${player.pseudo}`;
-                btn.onclick = () => generatePDF(i);
-                leavePdfButtons.appendChild(btn);
-            });
+            showReviewScreen(true);
         }
 
         function rejoinGame() {
@@ -1099,7 +1086,7 @@ if (!state.endScreenShown) {
             $('generated-pseudo').textContent = generatePseudo();
         }
 
-        function showReviewScreen() {
+        function showReviewScreen(filterToAnswered = false) {
     if (state.gameLoopId) { clearInterval(state.gameLoopId); state.gameLoopId = null; }
     $('game-screen').style.display = 'none';
     $('game-duo-screen').classList.remove('active');
@@ -1119,7 +1106,11 @@ if (!state.endScreenShown) {
         }
 
         // après :
-QUESTIONS.forEach(q => {
+QUESTIONS.filter(q => {
+    const hasInsight = (state.checkedInsights[playerIndex] || []).some(c => c.questionId === q.id);
+    const hasNote = ((state.notes[playerIndex] || {})[q.id] || '').trim();
+    return !filterToAnswered || hasInsight || hasNote;
+}).forEach(q => {
     const qDiv = document.createElement('div');
     qDiv.style.cssText = 'margin-bottom:1.2rem; padding-bottom:1rem; border-bottom:1px solid rgba(0,0,0,0.07);';
     qDiv.innerHTML = `<div style="font-size:0.78rem; color:var(--divia-magenta); font-weight:800; margin-bottom:0.3rem;">Q${q.id} — ${q.text}</div>
