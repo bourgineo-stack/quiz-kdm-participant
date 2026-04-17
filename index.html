@@ -1106,11 +1106,12 @@ if (!state.endScreenShown) {
         }
 
         // après :
-QUESTIONS.filter(q => {
+const filteredQuestions = QUESTIONS.filter(q => {
     const hasInsight = (state.checkedInsights[playerIndex] || []).some(c => c.questionId === q.id);
     const hasNote = ((state.notes[playerIndex] || {})[q.id] || '').trim();
     return !filterToAnswered || hasInsight || hasNote;
-}).forEach(q => {
+});
+filteredQuestions.forEach(q => {
     const qDiv = document.createElement('div');
     qDiv.style.cssText = 'margin-bottom:1.2rem; padding-bottom:1rem; border-bottom:1px solid rgba(0,0,0,0.07);';
     qDiv.innerHTML = `<div style="font-size:0.78rem; color:var(--divia-magenta); font-weight:800; margin-bottom:0.3rem;">Q${q.id} — ${q.text}</div>
@@ -1118,7 +1119,7 @@ QUESTIONS.filter(q => {
     playerSection.appendChild(qDiv);
 });
 container.appendChild(playerSection);
-QUESTIONS.forEach(q => {
+filteredQuestions.forEach(q => {
     displayInsights(q, playerIndex, `review-insights-${playerIndex}-${q.id}`);
 });
 
