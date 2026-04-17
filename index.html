@@ -1151,6 +1151,7 @@ QUESTIONS.forEach(q => {
             if (state.gameLoopId) clearInterval(state.gameLoopId);
             $('game-screen').style.display = 'none';
             $('game-duo-screen').classList.remove('active');
+            $('waiting-screen').classList.remove('active');
             $('explain-phase').style.display = 'none';
             $('vote-phase').style.display = 'none';
             $('phase-bar').style.display = 'none';
