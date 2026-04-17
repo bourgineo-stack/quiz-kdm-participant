@@ -824,6 +824,7 @@ function hideWaitingScreen() {
         // === GAME ===
         function showGameScreen() {
             $('lottery-screen').classList.remove('active');
+            setupEventListeners();
 
             if (state.mode === 'duo') {
                 $('game-duo-screen').classList.add('active');
