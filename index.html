@@ -1433,11 +1433,19 @@ window.addEventListener('beforeunload', (e) => {
         e.returnValue = '';
     }
 });
-        document.addEventListener('touchmove', (e) => {
-    if (e.touches.length > 1) return; // autoriser le pinch-zoom
+        let touchStartY = 0;
+document.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1) return;
     const target = e.target;
-    const scrollable = target.closest('textarea, [style*="overflow"]');
-    if (!scrollable) e.preventDefault();
+    const scrollable = target.closest('textarea');
+    if (scrollable) return;
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    const movingDown = e.touches[0].clientY > touchStartY;
+    if (scrollTop === 0 && movingDown) e.preventDefault();
 }, { passive: false });
         history.pushState(null, '', window.location.href);
 window.addEventListener('popstate', () => {
