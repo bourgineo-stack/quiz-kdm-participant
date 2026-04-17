@@ -555,7 +555,8 @@ const state = {
             checkedInsights: { 0: [], 1: [] }, // par playerIndex
             notes: { 0: {}, 1: {} },            // par playerIndex, par questionId
             lastExplainQuestionId: null,
-            endScreenShown: false
+            endScreenShown: false,
+            seenQuestions: new Set()    
         };
 
         const $ = id => document.getElementById(id);
@@ -940,7 +941,8 @@ if (!state.endScreenShown) {
 
             if (quizState.questionIndex !== state.lastQuestionIndex) {
                 state.lastQuestionIndex = quizState.questionIndex;
-                state.currentAnswer = {};
+state.seenQuestions.add(quizState.currentQuestion.id);
+state.currentAnswer = {};
                 state.submitted = {};
                 onQuestionChange(quizState);
             }
@@ -1108,9 +1110,11 @@ if (!state.endScreenShown) {
 
         // après :
 const filteredQuestions = QUESTIONS.filter(q => {
+    if (!filterToAnswered) return true;
     const hasInsight = (state.checkedInsights[playerIndex] || []).some(c => c.questionId === q.id);
     const hasNote = ((state.notes[playerIndex] || {})[q.id] || '').trim();
-    return !filterToAnswered || hasInsight || hasNote;
+    const wasSeen = state.seenQuestions.has(q.id);
+    return hasInsight || hasNote || wasSeen;
 });
 filteredQuestions.forEach(q => {
     const qDiv = document.createElement('div');
