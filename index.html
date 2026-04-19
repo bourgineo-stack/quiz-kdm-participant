@@ -1063,13 +1063,18 @@ state.currentAnswer = {};
             $('generated-pseudo').textContent = generatePseudo();
         }
 
-        function showReviewScreen(filterToAnswered = false) {
+      function showReviewScreen(filterToAnswered = false) {
     if (state.gameLoopId) { clearInterval(state.gameLoopId); state.gameLoopId = null; }
     $('game-screen').style.display = 'none';
     $('game-duo-screen').classList.remove('active');
     $('explain-phase').style.display = 'none';
     $('vote-phase').style.display = 'none';
     $('phase-bar').style.display = 'none';
+    
+    // ✅ Vider info-content pour éviter les IDs en doublon avec la review
+    if ($('info-content')) $('info-content').innerHTML = '';
+    if ($('p1-options')) $('p1-options').innerHTML = '';
+    if ($('p2-options')) $('p2-options').innerHTML = '';
 
     const container = $('review-content');
     container.innerHTML = '';
