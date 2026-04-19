@@ -627,39 +627,9 @@ const waitInterval = setInterval(async () => {
         clearInterval(waitInterval);
         console.log('✅ Quiz démarré détecté !');
         state.referenceTime = SETTINGS.startTime;
-    // Mettre à jour le sessionMarker maintenant qu'on connaît le startTime
-    setTimeout(async () => {
-        let confirmed = false;
-        let attempts = 0;
-        while (!confirmed && attempts < 5) {
-            attempts++;
-            try {
-                await fetch(CONFIG.sheetUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        action: 'register', 
-                        pseudo: state.players[0].pseudo, 
-                        team: state.players[0].team
-                    })
-                });
-                await new Promise(r => setTimeout(r, 2000));
-                const res = await fetch(`${CONFIG.sheetUrl}?action=getSessionMarker&pseudo=${encodeURIComponent(state.players[0].pseudo)}`);
-                const data = await res.json();
-                if (data.sessionMarker) {
-                    confirmed = true;
-                    console.log('✅ SessionMarker confirmé:', data.sessionMarker);
-                } else {
-                    await new Promise(r => setTimeout(r, 3000));
-                }
-            } catch(e) {
-                await new Promise(r => setTimeout(r, 3000));
-            }
-        }
-    }, 60000 + Math.random() * 10000);
+    // Le sessionMarker est déjà posé par l'animateur via markSessionParticipants
     $('waiting-screen').classList.remove('active');
-    $('loading-screen').style.display = 'none';
+        $('loading-screen').style.display = 'none';
     showGameScreen();
 }
 }, 15000);
