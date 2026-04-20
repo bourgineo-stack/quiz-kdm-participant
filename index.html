@@ -1236,7 +1236,7 @@ function generatePDF(playerIndex) {
 
            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             if (isIOS) {
-                alert('📱 Sur iPhone : votre résumé va s\'ouvrir dans un nouvel onglet. Appuyez sur le bouton Partager ↑ en bas de l\'écran, puis "Sur mon iPhone" pour le sauvegarder - sans ça, il sera perdu.');
+                alert('📱 Sur iPhone : votre résumé va s\'ouvrir dans un nouvel onglet. Appuyez sur le bouton Partager ↑ en bas de l\'écran, puis "Options en haut" pour le sauvegarder - sans ça, il sera perdu.');
                 const win = window.open('', '_blank');
                 win.document.write(html);
                 win.document.close();
