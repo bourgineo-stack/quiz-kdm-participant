@@ -1226,12 +1226,13 @@ function generatePDF(playerIndex) {
 </style></head>
 <body>
   <div style="text-align:center; margin-bottom:2rem; padding-bottom:1rem; border-bottom:2px solid #D2007A;">
-    <div style="font-size:1.5rem; font-weight:800; color:#2D1B4E;">🌱 Éco-Quiz KDM</div>
+    <div style="font-size:1.5rem; font-weight:800; color:#2D1B4E;">🌱 Éco-Quiz</div>
     <div style="font-size:1rem; color:#666; margin-top:0.3rem;">Mon résumé - <strong>${player.pseudo}</strong></div>
     <div style="font-size:0.8rem; color:#999; margin-top:0.2rem;">${new Date().toLocaleDateString('fr-FR')}</div>
   </div>
   ${content}
   <div style="text-align:center; margin-top:2rem; font-size:0.78rem; color:#bbb;">CO₂ = énergie consommée = argent dépensé</div>
+<div style="text-align:center; margin-top:1rem; padding-top:1rem; border-top:1px solid #eee; font-size:0.75rem; color:#ccc;">Quiz créé par <strong style="color:#2D1B4E;">VoltFace</strong> · Dijon · <a href="mailto:volt.face@outlook.fr" style="color:#D2007A; text-decoration:none;">volt.face@outlook.fr</a></div>
 </body></html>`;
 
            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
