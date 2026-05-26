@@ -950,6 +950,7 @@ if (!state.endScreenShown) {
 }
 
             if (quizState.questionIndex !== state.lastQuestionIndex) {
+                if (state.lastQuestionIndex !== -1) state.questionCount = (state.questionCount || 0) + 1;
                 state.lastQuestionIndex = quizState.questionIndex;
 state.seenQuestions.add(quizState.currentQuestion.id);
 state.currentAnswer = {};
@@ -1307,7 +1308,7 @@ function generatePDF(playerIndex) {
                 $('vote-phase').style.display = isVote ? 'block' : 'none';
                 $('explain-phase').style.display = (!isVote && !isDiscussion) ? 'block' : 'none';
 
-                if (!isVote) {
+                if (!isVote && !isDiscussion) {
                     showExplanation(quizState);
                 }
             }
