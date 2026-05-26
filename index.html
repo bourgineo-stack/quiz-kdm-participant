@@ -950,7 +950,7 @@ if (!state.endScreenShown) {
 }
 
             if (quizState.questionIndex !== state.lastQuestionIndex) {
-                if (state.lastQuestionIndex !== -1) state.questionCount = (state.questionCount || 0) + 1;
+                if (state.lastQuestionIndex !== -1 && quizState.phase !== 'discussion') state.questionCount = (state.questionCount || 0) + 1;
                 state.lastQuestionIndex = quizState.questionIndex;
 state.seenQuestions.add(quizState.currentQuestion.id);
 state.currentAnswer = {};
