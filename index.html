@@ -148,7 +148,10 @@
         }
         .phase-bar.vote { background: var(--divia-magenta-dark); }
         .phase-bar.explain { background: var(--success); }
-
+        .phase-bar.discussion {
+    background: #7c3aed;
+    color: white;
+}
         /* Question card */
         .question-card {
             background: white; margin: 1rem; border-radius: 20px; overflow: hidden;
@@ -1277,7 +1280,8 @@ function generatePDF(playerIndex) {
             const q = quizState.currentQuestion;
             if (!q) return;
             const isVote = quizState.phase === 'vote';
-            const phaseLabel = isVote ? '⏱️ Phase de vote' : '💡 Explication';
+            const isDiscussion = quizState.phase === 'discussion';
+            const phaseLabel = isVote ? '⏱️ Phase de vote' : isDiscussion ? '💬 Pause discussion' : '💡 Explication';
 
             if (state.mode === 'duo') {
                 const phaseBar = $('phase-bar-duo');
@@ -1301,7 +1305,7 @@ function generatePDF(playerIndex) {
                 phaseBar.textContent = phaseLabel;
 
                 $('vote-phase').style.display = isVote ? 'block' : 'none';
-                $('explain-phase').style.display = isVote ? 'none' : 'block';
+                $('explain-phase').style.display = (!isVote && !isDiscussion) ? 'block' : 'none';
 
                 if (!isVote) {
                     showExplanation(quizState);
