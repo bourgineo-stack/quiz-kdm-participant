@@ -78,7 +78,7 @@ function getQuizState(referenceTime) {
     for (let i = 0; i < QUESTIONS.length; i++) {
         totalDuration += cycleLength;
         // Pause APRÈS la question (i+1) si multiple de interDisc, sauf après la dernière
-        if (disc > 0 && interDisc > 0 && (i + 1) % interDisc === 0 && i < QUESTIONS.length - 1) {
+       if (disc > 0 && interDisc > 0 && (i + 1) % interDisc === 0) {
             totalDuration += disc;
         }
     }
@@ -100,7 +100,7 @@ function getQuizState(referenceTime) {
     for (let i = 0; i < QUESTIONS.length; i++) {
         const voteEnd = cursor + SETTINGS.voteDuration;
         const explainEnd = voteEnd + SETTINGS.explainDuration;
-        const hasDiscussion = disc > 0 && interDisc > 0 && (i + 1) % interDisc === 0 && i < QUESTIONS.length - 1;
+        const hasDiscussion = disc > 0 && interDisc > 0 && (i + 1) % interDisc === 0;
         const discEnd = hasDiscussion ? explainEnd + disc : explainEnd;
 
         if (positionInTotal < voteEnd) {
@@ -143,7 +143,7 @@ function getCurrentTour(referenceTime) {
     let totalDuration = 0;
     for (let i = 0; i < QUESTIONS.length; i++) {
         totalDuration += cycleLength;
-        if (disc > 0 && interDisc > 0 && (i + 1) % interDisc === 0 && i < QUESTIONS.length - 1) {
+        if (disc > 0 && interDisc > 0 && (i + 1) % interDisc === 0) {
             totalDuration += disc;
         }
     }
